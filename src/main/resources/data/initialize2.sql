@@ -14,8 +14,7 @@ CREATE TABLE vulnerability (id int auto_increment PRIMARY KEY, cve VARCHAR(20) U
         cvssV3IntegrityImpact VARCHAR(20), cvssV3AvailabilityImpact VARCHAR(20), cvssV3BaseScore DECIMAL(3,1), 
         cvssV3BaseSeverity VARCHAR(20));
 
-CREATE TABLE reference (cveid INT, name VARCHAR(1000), url VARCHAR(1000), source VARCHAR(255),
-	CONSTRAINT fkReference FOREIGN KEY (cveid) REFERENCES vulnerability(id) ON DELETE CASCADE);
+CREATE TABLE reference (cveid INT, name VARCHAR(1000), url VARCHAR(1000), source VARCHAR(255));
 
 CREATE TABLE cpeEntry (id INT auto_increment PRIMARY KEY, part CHAR(1), vendor VARCHAR(255), product VARCHAR(255),
 version VARCHAR(255), update_version VARCHAR(255), edition VARCHAR(255), lang VARCHAR(20), sw_edition VARCHAR(255), 
@@ -24,8 +23,7 @@ target_sw VARCHAR(255), target_hw VARCHAR(255), other VARCHAR(255), ecosystem VA
 CREATE TABLE software (cveid INT, cpeEntryId INT, versionEndExcluding VARCHAR(50), versionEndIncluding VARCHAR(50), 
                        versionStartExcluding VARCHAR(50), versionStartIncluding VARCHAR(50), vulnerable BOOLEAN);
 
-CREATE TABLE cweEntry (cveid INT, cwe VARCHAR(20),
-    CONSTRAINT fkCweEntry FOREIGN KEY (cveid) REFERENCES vulnerability(id) ON DELETE CASCADE);
+CREATE TABLE cweEntry (cveid INT, cwe VARCHAR(20));
 
 CREATE INDEX idxCwe ON cweEntry(cveid);
 CREATE INDEX idxVulnerability ON vulnerability(cve);
@@ -38,3 +36,5 @@ CREATE INDEX idxCpeEntry ON cpeEntry(part, vendor, product, version, update_vers
 
 CREATE TABLE properties (id varchar(50) PRIMARY KEY, value varchar(500));
 INSERT INTO properties(id, value) VALUES ('version', '4.1');
+
+

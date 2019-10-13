@@ -13,26 +13,31 @@ public class DownloadTask implements Runnable {
 
 	private ThreadPoolExecutor processExecutor;
 	private ProcessTask processTask;
+	private Path destination;
 	
 	private URL source;
 	
 	public DownloadTask(URL source, Path destination, ProcessTask processTask, ThreadPoolExecutor processExecutor) {
 		super();
 		this.source = source;
+		this.destination = destination;
 		this.processTask = processTask;
 		this.processExecutor = processExecutor;
 	}
 
 	@Override
 	public void run() {
+		System.out.println("Run download task for " + source + " -> " + destination);
 		try {
-			try (OutputStream out = Files.newOutputStream(processTask.getDestination());
+			try (OutputStream out = Files.newOutputStream(destination);
 				 InputStream in = source.openStream();
 					) {
 				IOUtils.copy(in, out, 16 * 1024);
 			}
+			System.out.println("Downloaded " + source + " to " + destination);
 			processExecutor.submit(processTask);
 		} catch(Exception e) {
+			e.printStackTrace();
 			throw new RuntimeException(e);
 		}
 	}

@@ -134,7 +134,7 @@ public final class NvdCveParser {
         System.out.println("Parse and generate CSV in " + (System.currentTimeMillis() - time) + "ms for " + resolve);
     }
 
-	private void parse(InputStream fin) throws IOException, CpeValidationException {
+	private void parse(InputStream fin) throws Exception {
 		try (InputStream in = new GZIPInputStream(fin);
 		        InputStreamReader isr = new InputStreamReader(in, UTF_8);
 		        JsonReader reader = new JsonReader(isr)) {
@@ -184,7 +184,7 @@ public final class NvdCveParser {
     	list.add(vulnerabilityWriter.getSql());
     	list.add(cweEntryWriter.getSql());
     	list.add(referenceWriter.getSql());
-    	list.add(softwareWriter.getVulnerableSoftwareSql());
+    	list.addAll(softwareWriter.getVulnerableSoftwareSql());
 
     	list.add(softwareWriter.getCpeEntrySql());
 
