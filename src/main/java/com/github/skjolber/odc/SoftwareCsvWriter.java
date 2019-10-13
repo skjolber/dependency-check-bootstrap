@@ -16,11 +16,11 @@ import org.owasp.dependencycheck.data.nvd.json.DefCveItem;
 import org.owasp.dependencycheck.data.nvd.json.NodeFlatteningCollector;
 import org.owasp.dependencycheck.data.nvdcve.DatabaseException;
 import org.owasp.dependencycheck.dependency.VulnerableSoftware;
-import org.owasp.dependencycheck.dependency.VulnerableSoftwareBuilder;
 import org.owasp.dependencycheck.utils.Settings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.github.skjolber.odc.ext.VulnerableSoftwareBuilder;
 import com.opencsv.CSVWriter;
 
 import us.springett.parsers.cpe.Cpe;
@@ -113,7 +113,7 @@ public class SoftwareCsvWriter {
 
 	public String getCpeEntrySql()  {
 		try {
-			return String.format(IOUtils.toString(getClass().getResourceAsStream("/sql/cpeEntry.sql"), StandardCharsets.UTF_8), cpeEntryPath.toAbsolutePath().toString());
+			return String.format(IOUtils.toString(getClass().getResourceAsStream("/csv-sql/cpeEntry.sql"), StandardCharsets.UTF_8), cpeEntryPath.toAbsolutePath().toString());
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
@@ -121,7 +121,7 @@ public class SoftwareCsvWriter {
 
 	public List<String> getVulnerableSoftwareSql() throws IOException  {
 		List<String> sqls = new ArrayList<>();
-		String template = IOUtils.toString(getClass().getResourceAsStream("/sql/software.sql"), StandardCharsets.UTF_8);
+		String template = IOUtils.toString(getClass().getResourceAsStream("/csv-sql/software.sql"), StandardCharsets.UTF_8);
 		for(int i = 0; i < softwareCount; i++) {
 			String fileName = String.format(softwareTemplate, i);
 			Path path = directory.resolve(fileName);

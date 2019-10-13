@@ -96,7 +96,7 @@ public class CsvDatabaseGenerator implements UncaughtExceptionHandler {
 
 			while (!processExecutor.isShutdown() && !downloadExecutor.isShutdown() && (processExecutor.getActiveCount() > 0 || !processExecutor.getQueue().isEmpty() || downloadExecutor.getActiveCount() > 0 || !downloadExecutor.getQueue().isEmpty())) {
 				try {
-					Thread.sleep(20);
+					Thread.sleep(100);
 				} catch (InterruptedException e) {
 					break;
 				}
@@ -162,7 +162,7 @@ public class CsvDatabaseGenerator implements UncaughtExceptionHandler {
 	}
 	
     private void createTables(Connection conn) throws Exception {
-        try (InputStream is = getClass().getResourceAsStream("/data/initialize.sql")) {
+        try (InputStream is = getClass().getResourceAsStream("/csv-sql/initialize.sql")) {
             final String dbStructure = IOUtils.toString(is, StandardCharsets.UTF_8);
 
             Statement statement = null;
@@ -180,7 +180,7 @@ public class CsvDatabaseGenerator implements UncaughtExceptionHandler {
     private void postProcessTables() throws Exception {
         long postProcess = System.currentTimeMillis();
         
-    	List<String> sqls = IOUtils.readLines(getClass().getResourceAsStream("/data/constraints.sql"), StandardCharsets.UTF_8);
+    	List<String> sqls = IOUtils.readLines(getClass().getResourceAsStream("/csv-sql/constraints.sql"), StandardCharsets.UTF_8);
     	System.out.println("Got " + sqls.size() + " post-processing statements, running them in sequence");
         try (Connection conn = connectionFactory.getConnection()) {
     		for(String sql : sqls) {
@@ -194,6 +194,8 @@ public class CsvDatabaseGenerator implements UncaughtExceptionHandler {
     
 	@Override
 	public void uncaughtException(Thread t, Throwable e) {
+		System.out.println("Uncaugth exception: " + t.toString());
+		
 		this.uncaughtException = e;
 		
 		e.printStackTrace(); 

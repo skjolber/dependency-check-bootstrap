@@ -49,7 +49,7 @@ public class CweEntryWriter {
 
 	public String getSql()  {
 		try {
-			return String.format(IOUtils.toString(getClass().getResourceAsStream("/sql/cweEntry.sql"), StandardCharsets.UTF_8), path.toAbsolutePath().toString());
+			return String.format(IOUtils.toString(getClass().getResourceAsStream("/csv-sql/cweEntry.sql"), StandardCharsets.UTF_8), path.toAbsolutePath().toString());
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}

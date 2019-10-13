@@ -93,7 +93,7 @@ public final class NvdCveParser {
         try (InputStream in = url.openStream()) {
         	parse(in);
         }
-        System.out.println("Download, parse and generate CSV in " + (System.currentTimeMillis() - time) + "ms for " + directory);
+        System.out.println("Parsed and generated CSV in " + (System.currentTimeMillis() - time) + "ms for " + directory);
 
     }
     
@@ -103,7 +103,7 @@ public final class NvdCveParser {
     	try (InputStream fin = Files.newInputStream(path)) {
 	        parse(fin);
 	    }
-        System.out.println("Parse and generate CSV in " + (System.currentTimeMillis() - time) + "ms for " + directory);
+        System.out.println("Parsed and generated CSV in " + (System.currentTimeMillis() - time) + "ms for " + directory);
     }
 
 	private void parse(InputStream fin) throws Exception {
