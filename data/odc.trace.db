@@ -1,0 +1,325 @@
+2019-10-12 19:01:05 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLNonTransientException: IO Exception: "IOException reading /tmp/cve2008_8596082657656758476.json.gzowasp.vulnerability.v2v3.csv"; SQL statement:
+INSERT INTO vulnerability (id, cve, description, cvssV2Score, cvssV2AccessVector, cvssV2AccessComplexity, cvssV2Authentication, cvssV2ConfidentialityImpact, cvssV2IntegrityImpact, cvssV2AvailabilityImpact, cvssV2Severity, cvssV3AttackVector, cvssV3AttackComplexity, cvssV3PrivilegesRequired, cvssV3UserInteraction, cvssV3Scope, cvssV3ConfidentialityImpact, cvssV3IntegrityImpact, cvssV3AvailabilityImpact, cvssV3BaseScore, cvssV3BaseSeverity) 
+SELECT id, cve, description, convert(cvssV2Score, DECIMAL(3,1)), cvssV2AccessVector, cvssV2AccessComplexity, cvssV2Authentication, cvssV2ConfidentialityImpact, cvssV2IntegrityImpact, cvssV2AvailabilityImpact, cvssV2Severity, cvssV3AttackVector, cvssV3AttackComplexity, cvssV3PrivilegesRequired, cvssV3UserInteraction, cvssV3Scope, cvssV3ConfidentialityImpact, cvssV3IntegrityImpact, cvssV3AvailabilityImpact, convert(cvssV3BaseScore, DECIMAL(3,1)), cvssV3BaseSeverity
+FROM CSVREAD( '/tmp/cve2008_8596082657656758476.json.gzowasp.vulnerability.v2v3.csv');
+
+INSERT INTO vulnerability (id, cve, description, cvssV2Score, cvssV2AccessVector, cvssV2AccessComplexity, cvssV2Authentication, cvssV2ConfidentialityImpact, cvssV2IntegrityImpact, cvssV2AvailabilityImpact, cvssV2Severity) 
+SELECT id, cve, description, convert(cvssV2Score, DECIMAL(3,1)), cvssV2AccessVector, cvssV2AccessComplexity, cvssV2Authentication, cvssV2ConfidentialityImpact, cvssV2IntegrityImpact, cvssV2AvailabilityImpact, cvssV2Severity
+FROM CSVREAD( '/tmp/cve2008_8596082657656758476.json.gzowasp.vulnerability.v2.csv');
+
+INSERT INTO vulnerability (id, cve, description, cvssV3AttackVector, cvssV3AttackComplexity, cvssV3PrivilegesRequired, cvssV3UserInteraction, cvssV3Scope, cvssV3ConfidentialityImpact, cvssV3IntegrityImpact, cvssV3AvailabilityImpact, cvssV3BaseScore, cvssV3BaseSeverity) 
+SELECT id, cve, description, cvssV3AttackVector, cvssV3AttackComplexity, cvssV3PrivilegesRequired, cvssV3UserInteraction, cvssV3Scope, cvssV3ConfidentialityImpact, cvssV3IntegrityImpact, cvssV3AvailabilityImpact, convert(cvssV3BaseScore, DECIMAL(3,1)), cvssV3BaseSeverity
+FROM CSVREAD( '/tmp/cve2008_8596082657656758476.json.gzowasp.vulnerability.v3.csv');
+
+INSERT INTO vulnerability (id, cve, description) 
+SELECT id, cve, description
+FROM CSVREAD( '/tmp/cve2008_8596082657656758476.json.gzowasp.vulnerability.plain.csv'); [90028-199]
+	at org.h2.message.DbException.getJdbcSQLException(DbException.java:502)
+	at org.h2.message.DbException.getJdbcSQLException(DbException.java:427)
+	at org.h2.tools.Csv.convertException(Csv.java:586)
+	at org.h2.tools.Csv.read(Csv.java:194)
+	at org.h2.expression.function.Function.getValueForColumnList(Function.java:2728)
+	at org.h2.table.FunctionTable.<init>(FunctionTable.java:60)
+	at org.h2.command.Parser.readTableFunction(Parser.java:1945)
+	at org.h2.command.Parser.readTableFilter(Parser.java:1892)
+	at org.h2.command.Parser.parseSelectSimpleFromPart(Parser.java:2641)
+	at org.h2.command.Parser.parseSelectSimple(Parser.java:2788)
+	at org.h2.command.Parser.parseSelectSub(Parser.java:2636)
+	at org.h2.command.Parser.parseSelectUnion(Parser.java:2469)
+	at org.h2.command.Parser.parseSelect(Parser.java:2440)
+	at org.h2.command.Parser.parseInsertGivenTable(Parser.java:1759)
+	at org.h2.command.Parser.parseInsert(Parser.java:1684)
+	at org.h2.command.Parser.parsePrepared(Parser.java:891)
+	at org.h2.command.Parser.parse(Parser.java:788)
+	at org.h2.command.Parser.parse(Parser.java:760)
+	at org.h2.command.Parser.prepareCommand(Parser.java:683)
+	at org.h2.engine.Session.prepareLocal(Session.java:627)
+	at org.h2.engine.Session.prepareCommand(Session.java:565)
+	at org.h2.jdbc.JdbcConnection.prepareCommand(JdbcConnection.java:1292)
+	at org.h2.jdbc.JdbcStatement.executeInternal(JdbcStatement.java:217)
+	at org.h2.jdbc.JdbcStatement.execute(JdbcStatement.java:205)
+	at test.CsvTransformer.process(CsvTransformer.java:58)
+	at test.Runner.main(Runner.java:13)
+Caused by: java.io.FileNotFoundException: /tmp/cve2008_8596082657656758476.json.gzowasp.vulnerability.v2v3.csv (Ingen slik fil eller filkatalog)
+	at java.io.FileInputStream.open0(Native Method)
+	at java.io.FileInputStream.open(FileInputStream.java:195)
+	at java.io.FileInputStream.<init>(FileInputStream.java:138)
+	at java.io.FileInputStream.<init>(FileInputStream.java:93)
+	at org.h2.store.fs.FilePathDisk.newInputStream(FilePathDisk.java:337)
+	at org.h2.store.fs.FileUtils.newInputStream(FileUtils.java:224)
+	at org.h2.tools.Csv.initRead(Csv.java:312)
+	at org.h2.tools.Csv.readResultSet(Csv.java:216)
+	at org.h2.tools.Csv.read(Csv.java:192)
+	... 22 more
+2019-10-12 19:01:29 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Column "ID" not found; SQL statement:
+INSERT INTO vulnerability (id, cve, description, cvssV2Score, cvssV2AccessVector, cvssV2AccessComplexity, cvssV2Authentication, cvssV2ConfidentialityImpact, cvssV2IntegrityImpact, cvssV2AvailabilityImpact, cvssV2Severity, cvssV3AttackVector, cvssV3AttackComplexity, cvssV3PrivilegesRequired, cvssV3UserInteraction, cvssV3Scope, cvssV3ConfidentialityImpact, cvssV3IntegrityImpact, cvssV3AvailabilityImpact, cvssV3BaseScore, cvssV3BaseSeverity) 
+SELECT id, cve, description, convert(cvssV2Score, DECIMAL(3,1)), cvssV2AccessVector, cvssV2AccessComplexity, cvssV2Authentication, cvssV2ConfidentialityImpact, cvssV2IntegrityImpact, cvssV2AvailabilityImpact, cvssV2Severity, cvssV3AttackVector, cvssV3AttackComplexity, cvssV3PrivilegesRequired, cvssV3UserInteraction, cvssV3Scope, cvssV3ConfidentialityImpact, cvssV3IntegrityImpact, cvssV3AvailabilityImpact, convert(cvssV3BaseScore, DECIMAL(3,1)), cvssV3BaseSeverity
+FROM CSVREAD( '/tmp/cve2008_8596082657656758476.json.gz/owasp.vulnerability.v2v3.csv');
+
+INSERT INTO vulnerability (id, cve, description, cvssV2Score, cvssV2AccessVector, cvssV2AccessComplexity, cvssV2Authentication, cvssV2ConfidentialityImpact, cvssV2IntegrityImpact, cvssV2AvailabilityImpact, cvssV2Severity) 
+SELECT id, cve, description, convert(cvssV2Score, DECIMAL(3,1)), cvssV2AccessVector, cvssV2AccessComplexity, cvssV2Authentication, cvssV2ConfidentialityImpact, cvssV2IntegrityImpact, cvssV2AvailabilityImpact, cvssV2Severity
+FROM CSVREAD( '/tmp/cve2008_8596082657656758476.json.gz/owasp.vulnerability.v2.csv');
+
+INSERT INTO vulnerability (id, cve, description, cvssV3AttackVector, cvssV3AttackComplexity, cvssV3PrivilegesRequired, cvssV3UserInteraction, cvssV3Scope, cvssV3ConfidentialityImpact, cvssV3IntegrityImpact, cvssV3AvailabilityImpact, cvssV3BaseScore, cvssV3BaseSeverity) 
+SELECT id, cve, description, cvssV3AttackVector, cvssV3AttackComplexity, cvssV3PrivilegesRequired, cvssV3UserInteraction, cvssV3Scope, cvssV3ConfidentialityImpact, cvssV3IntegrityImpact, cvssV3AvailabilityImpact, convert(cvssV3BaseScore, DECIMAL(3,1)), cvssV3BaseSeverity
+FROM CSVREAD( '/tmp/cve2008_8596082657656758476.json.gz/owasp.vulnerability.v3.csv');
+
+INSERT INTO vulnerability (id, cve, description) 
+SELECT id, cve, description
+FROM CSVREAD( '/tmp/cve2008_8596082657656758476.json.gz/owasp.vulnerability.plain.csv'); [42122-199]
+	at org.h2.message.DbException.getJdbcSQLException(DbException.java:451)
+	at org.h2.message.DbException.getJdbcSQLException(DbException.java:427)
+	at org.h2.message.DbException.get(DbException.java:205)
+	at org.h2.message.DbException.get(DbException.java:181)
+	at org.h2.expression.ExpressionColumn.getColumnException(ExpressionColumn.java:176)
+	at org.h2.expression.ExpressionColumn.optimize(ExpressionColumn.java:158)
+	at org.h2.command.dml.Select.prepare(Select.java:1245)
+	at org.h2.command.dml.Insert.prepare(Insert.java:332)
+	at org.h2.command.Parser.prepareCommand(Parser.java:689)
+	at org.h2.engine.Session.prepareLocal(Session.java:627)
+	at org.h2.engine.Session.prepareCommand(Session.java:565)
+	at org.h2.jdbc.JdbcConnection.prepareCommand(JdbcConnection.java:1292)
+	at org.h2.jdbc.JdbcStatement.executeInternal(JdbcStatement.java:217)
+	at org.h2.jdbc.JdbcStatement.execute(JdbcStatement.java:205)
+	at test.CsvTransformer.process(CsvTransformer.java:58)
+	at test.Runner.main(Runner.java:13)
+2019-10-12 19:02:25 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Column "ID" not found; SQL statement:
+INSERT INTO vulnerability (id, cve, description, cvssV2Score, cvssV2AccessVector, cvssV2AccessComplexity, cvssV2Authentication, cvssV2ConfidentialityImpact, cvssV2IntegrityImpact, cvssV2AvailabilityImpact, cvssV2Severity, cvssV3AttackVector, cvssV3AttackComplexity, cvssV3PrivilegesRequired, cvssV3UserInteraction, cvssV3Scope, cvssV3ConfidentialityImpact, cvssV3IntegrityImpact, cvssV3AvailabilityImpact, cvssV3BaseScore, cvssV3BaseSeverity) 
+SELECT id, cve, description, convert(cvssV2Score, DECIMAL(3,1)), cvssV2AccessVector, cvssV2AccessComplexity, cvssV2Authentication, cvssV2ConfidentialityImpact, cvssV2IntegrityImpact, cvssV2AvailabilityImpact, cvssV2Severity, cvssV3AttackVector, cvssV3AttackComplexity, cvssV3PrivilegesRequired, cvssV3UserInteraction, cvssV3Scope, cvssV3ConfidentialityImpact, cvssV3IntegrityImpact, cvssV3AvailabilityImpact, convert(cvssV3BaseScore, DECIMAL(3,1)), cvssV3BaseSeverity
+FROM CSVREAD( '/tmp/cve2008_8596082657656758476.json.gz/owasp.vulnerability.v2v3.csv');
+
+INSERT INTO vulnerability (id, cve, description, cvssV2Score, cvssV2AccessVector, cvssV2AccessComplexity, cvssV2Authentication, cvssV2ConfidentialityImpact, cvssV2IntegrityImpact, cvssV2AvailabilityImpact, cvssV2Severity) 
+SELECT id, cve, description, convert(cvssV2Score, DECIMAL(3,1)), cvssV2AccessVector, cvssV2AccessComplexity, cvssV2Authentication, cvssV2ConfidentialityImpact, cvssV2IntegrityImpact, cvssV2AvailabilityImpact, cvssV2Severity
+FROM CSVREAD( '/tmp/cve2008_8596082657656758476.json.gz/owasp.vulnerability.v2.csv');
+
+INSERT INTO vulnerability (id, cve, description, cvssV3AttackVector, cvssV3AttackComplexity, cvssV3PrivilegesRequired, cvssV3UserInteraction, cvssV3Scope, cvssV3ConfidentialityImpact, cvssV3IntegrityImpact, cvssV3AvailabilityImpact, cvssV3BaseScore, cvssV3BaseSeverity) 
+SELECT id, cve, description, cvssV3AttackVector, cvssV3AttackComplexity, cvssV3PrivilegesRequired, cvssV3UserInteraction, cvssV3Scope, cvssV3ConfidentialityImpact, cvssV3IntegrityImpact, cvssV3AvailabilityImpact, convert(cvssV3BaseScore, DECIMAL(3,1)), cvssV3BaseSeverity
+FROM CSVREAD( '/tmp/cve2008_8596082657656758476.json.gz/owasp.vulnerability.v3.csv');
+
+INSERT INTO vulnerability (id, cve, description) 
+SELECT id, cve, description
+FROM CSVREAD( '/tmp/cve2008_8596082657656758476.json.gz/owasp.vulnerability.plain.csv'); [42122-199]
+	at org.h2.message.DbException.getJdbcSQLException(DbException.java:451)
+	at org.h2.message.DbException.getJdbcSQLException(DbException.java:427)
+	at org.h2.message.DbException.get(DbException.java:205)
+	at org.h2.message.DbException.get(DbException.java:181)
+	at org.h2.expression.ExpressionColumn.getColumnException(ExpressionColumn.java:176)
+	at org.h2.expression.ExpressionColumn.optimize(ExpressionColumn.java:158)
+	at org.h2.command.dml.Select.prepare(Select.java:1245)
+	at org.h2.command.dml.Insert.prepare(Insert.java:332)
+	at org.h2.command.Parser.prepareCommand(Parser.java:689)
+	at org.h2.engine.Session.prepareLocal(Session.java:627)
+	at org.h2.engine.Session.prepareCommand(Session.java:565)
+	at org.h2.jdbc.JdbcConnection.prepareCommand(JdbcConnection.java:1292)
+	at org.h2.jdbc.JdbcStatement.executeInternal(JdbcStatement.java:217)
+	at org.h2.jdbc.JdbcStatement.execute(JdbcStatement.java:205)
+	at test.CsvTransformer.process(CsvTransformer.java:60)
+	at test.Runner.main(Runner.java:13)
+2019-10-12 19:07:48 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Column "ID" not found; SQL statement:
+INSERT INTO vulnerability (id, cve, description, cvssV2Score, cvssV2AccessVector, cvssV2AccessComplexity, cvssV2Authentication, cvssV2ConfidentialityImpact, cvssV2IntegrityImpact, cvssV2AvailabilityImpact, cvssV2Severity, cvssV3AttackVector, cvssV3AttackComplexity, cvssV3PrivilegesRequired, cvssV3UserInteraction, cvssV3Scope, cvssV3ConfidentialityImpact, cvssV3IntegrityImpact, cvssV3AvailabilityImpact, cvssV3BaseScore, cvssV3BaseSeverity) 
+SELECT id, cve, description, convert(cvssV2Score, DECIMAL(3,1)), cvssV2AccessVector, cvssV2AccessComplexity, cvssV2Authentication, cvssV2ConfidentialityImpact, cvssV2IntegrityImpact, cvssV2AvailabilityImpact, cvssV2Severity, cvssV3AttackVector, cvssV3AttackComplexity, cvssV3PrivilegesRequired, cvssV3UserInteraction, cvssV3Scope, cvssV3ConfidentialityImpact, cvssV3IntegrityImpact, cvssV3AvailabilityImpact, convert(cvssV3BaseScore, DECIMAL(3,1)), cvssV3BaseSeverity
+FROM CSVREAD('/tmp/cve2008_8596082657656758476.json.gz/owasp.vulnerability.v2v3.csv');
+
+INSERT INTO vulnerability (id, cve, description, cvssV2Score, cvssV2AccessVector, cvssV2AccessComplexity, cvssV2Authentication, cvssV2ConfidentialityImpact, cvssV2IntegrityImpact, cvssV2AvailabilityImpact, cvssV2Severity) 
+SELECT id, cve, description, convert(cvssV2Score, DECIMAL(3,1)), cvssV2AccessVector, cvssV2AccessComplexity, cvssV2Authentication, cvssV2ConfidentialityImpact, cvssV2IntegrityImpact, cvssV2AvailabilityImpact, cvssV2Severity
+FROM CSVREAD('/tmp/cve2008_8596082657656758476.json.gz/owasp.vulnerability.v2.csv');
+
+INSERT INTO vulnerability (id, cve, description, cvssV3AttackVector, cvssV3AttackComplexity, cvssV3PrivilegesRequired, cvssV3UserInteraction, cvssV3Scope, cvssV3ConfidentialityImpact, cvssV3IntegrityImpact, cvssV3AvailabilityImpact, cvssV3BaseScore, cvssV3BaseSeverity) 
+SELECT id, cve, description, cvssV3AttackVector, cvssV3AttackComplexity, cvssV3PrivilegesRequired, cvssV3UserInteraction, cvssV3Scope, cvssV3ConfidentialityImpact, cvssV3IntegrityImpact, cvssV3AvailabilityImpact, convert(cvssV3BaseScore, DECIMAL(3,1)), cvssV3BaseSeverity
+FROM CSVREAD('/tmp/cve2008_8596082657656758476.json.gz/owasp.vulnerability.v3.csv');
+
+INSERT INTO vulnerability (id, cve, description) 
+SELECT id, cve, description
+FROM CSVREAD('/tmp/cve2008_8596082657656758476.json.gz/owasp.vulnerability.plain.csv'); [42122-199]
+	at org.h2.message.DbException.getJdbcSQLException(DbException.java:451)
+	at org.h2.message.DbException.getJdbcSQLException(DbException.java:427)
+	at org.h2.message.DbException.get(DbException.java:205)
+	at org.h2.message.DbException.get(DbException.java:181)
+	at org.h2.expression.ExpressionColumn.getColumnException(ExpressionColumn.java:176)
+	at org.h2.expression.ExpressionColumn.optimize(ExpressionColumn.java:158)
+	at org.h2.command.dml.Select.prepare(Select.java:1245)
+	at org.h2.command.dml.Insert.prepare(Insert.java:332)
+	at org.h2.command.Parser.prepareCommand(Parser.java:689)
+	at org.h2.engine.Session.prepareLocal(Session.java:627)
+	at org.h2.engine.Session.prepareCommand(Session.java:565)
+	at org.h2.jdbc.JdbcConnection.prepareCommand(JdbcConnection.java:1292)
+	at org.h2.jdbc.JdbcStatement.executeInternal(JdbcStatement.java:217)
+	at org.h2.jdbc.JdbcStatement.execute(JdbcStatement.java:205)
+	at test.CsvTransformer.process(CsvTransformer.java:60)
+	at test.Runner.main(Runner.java:13)
+2019-10-12 19:07:54 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Column "ID" not found; SQL statement:
+INSERT INTO vulnerability (id, cve, description, cvssV2Score, cvssV2AccessVector, cvssV2AccessComplexity, cvssV2Authentication, cvssV2ConfidentialityImpact, cvssV2IntegrityImpact, cvssV2AvailabilityImpact, cvssV2Severity, cvssV3AttackVector, cvssV3AttackComplexity, cvssV3PrivilegesRequired, cvssV3UserInteraction, cvssV3Scope, cvssV3ConfidentialityImpact, cvssV3IntegrityImpact, cvssV3AvailabilityImpact, cvssV3BaseScore, cvssV3BaseSeverity) 
+SELECT id, cve, description, convert(cvssV2Score, DECIMAL(3,1)), cvssV2AccessVector, cvssV2AccessComplexity, cvssV2Authentication, cvssV2ConfidentialityImpact, cvssV2IntegrityImpact, cvssV2AvailabilityImpact, cvssV2Severity, cvssV3AttackVector, cvssV3AttackComplexity, cvssV3PrivilegesRequired, cvssV3UserInteraction, cvssV3Scope, cvssV3ConfidentialityImpact, cvssV3IntegrityImpact, cvssV3AvailabilityImpact, convert(cvssV3BaseScore, DECIMAL(3,1)), cvssV3BaseSeverity
+FROM CSVREAD('/tmp/cve2008_8596082657656758476.json.gz/owasp.vulnerability.v2v3.csv');
+
+INSERT INTO vulnerability (id, cve, description, cvssV2Score, cvssV2AccessVector, cvssV2AccessComplexity, cvssV2Authentication, cvssV2ConfidentialityImpact, cvssV2IntegrityImpact, cvssV2AvailabilityImpact, cvssV2Severity) 
+SELECT id, cve, description, convert(cvssV2Score, DECIMAL(3,1)), cvssV2AccessVector, cvssV2AccessComplexity, cvssV2Authentication, cvssV2ConfidentialityImpact, cvssV2IntegrityImpact, cvssV2AvailabilityImpact, cvssV2Severity
+FROM CSVREAD('/tmp/cve2008_8596082657656758476.json.gz/owasp.vulnerability.v2.csv');
+
+INSERT INTO vulnerability (id, cve, description, cvssV3AttackVector, cvssV3AttackComplexity, cvssV3PrivilegesRequired, cvssV3UserInteraction, cvssV3Scope, cvssV3ConfidentialityImpact, cvssV3IntegrityImpact, cvssV3AvailabilityImpact, cvssV3BaseScore, cvssV3BaseSeverity) 
+SELECT id, cve, description, cvssV3AttackVector, cvssV3AttackComplexity, cvssV3PrivilegesRequired, cvssV3UserInteraction, cvssV3Scope, cvssV3ConfidentialityImpact, cvssV3IntegrityImpact, cvssV3AvailabilityImpact, convert(cvssV3BaseScore, DECIMAL(3,1)), cvssV3BaseSeverity
+FROM CSVREAD('/tmp/cve2008_8596082657656758476.json.gz/owasp.vulnerability.v3.csv');
+
+INSERT INTO vulnerability (id, cve, description) 
+SELECT id, cve, description
+FROM CSVREAD('/tmp/cve2008_8596082657656758476.json.gz/owasp.vulnerability.plain.csv'); [42122-199]
+	at org.h2.message.DbException.getJdbcSQLException(DbException.java:451)
+	at org.h2.message.DbException.getJdbcSQLException(DbException.java:427)
+	at org.h2.message.DbException.get(DbException.java:205)
+	at org.h2.message.DbException.get(DbException.java:181)
+	at org.h2.expression.ExpressionColumn.getColumnException(ExpressionColumn.java:176)
+	at org.h2.expression.ExpressionColumn.optimize(ExpressionColumn.java:158)
+	at org.h2.command.dml.Select.prepare(Select.java:1245)
+	at org.h2.command.dml.Insert.prepare(Insert.java:332)
+	at org.h2.command.Parser.prepareCommand(Parser.java:689)
+	at org.h2.engine.Session.prepareLocal(Session.java:627)
+	at org.h2.engine.Session.prepareCommand(Session.java:565)
+	at org.h2.jdbc.JdbcConnection.prepareCommand(JdbcConnection.java:1292)
+	at org.h2.jdbc.JdbcStatement.executeInternal(JdbcStatement.java:217)
+	at org.h2.jdbc.JdbcStatement.execute(JdbcStatement.java:205)
+	at test.CsvTransformer.process(CsvTransformer.java:60)
+	at test.Runner.main(Runner.java:13)
+2019-10-12 19:12:28 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Column "ID" not found; SQL statement:
+INSERT INTO vulnerability (id, cve, description, cvssV2Score, cvssV2AccessVector, cvssV2AccessComplexity, cvssV2Authentication, cvssV2ConfidentialityImpact, cvssV2IntegrityImpact, cvssV2AvailabilityImpact, cvssV2Severity, cvssV3AttackVector, cvssV3AttackComplexity, cvssV3PrivilegesRequired, cvssV3UserInteraction, cvssV3Scope, cvssV3ConfidentialityImpact, cvssV3IntegrityImpact, cvssV3AvailabilityImpact, cvssV3BaseScore, cvssV3BaseSeverity) 
+SELECT id, cve, description, convert(cvssV2Score, DECIMAL(3,1)), cvssV2AccessVector, cvssV2AccessComplexity, cvssV2Authentication, cvssV2ConfidentialityImpact, cvssV2IntegrityImpact, cvssV2AvailabilityImpact, cvssV2Severity, cvssV3AttackVector, cvssV3AttackComplexity, cvssV3PrivilegesRequired, cvssV3UserInteraction, cvssV3Scope, cvssV3ConfidentialityImpact, cvssV3IntegrityImpact, cvssV3AvailabilityImpact, convert(cvssV3BaseScore, DECIMAL(3,1)), cvssV3BaseSeverity
+FROM CSVREAD('/tmp/cve2008_8596082657656758476.json.gz/owasp.vulnerability.v2v3.csv');
+
+INSERT INTO vulnerability (id, cve, description, cvssV2Score, cvssV2AccessVector, cvssV2AccessComplexity, cvssV2Authentication, cvssV2ConfidentialityImpact, cvssV2IntegrityImpact, cvssV2AvailabilityImpact, cvssV2Severity) 
+SELECT id, cve, description, convert(cvssV2Score, DECIMAL(3,1)), cvssV2AccessVector, cvssV2AccessComplexity, cvssV2Authentication, cvssV2ConfidentialityImpact, cvssV2IntegrityImpact, cvssV2AvailabilityImpact, cvssV2Severity
+FROM CSVREAD('/tmp/cve2008_8596082657656758476.json.gz/owasp.vulnerability.v2.csv');
+
+INSERT INTO vulnerability (id, cve, description, cvssV3AttackVector, cvssV3AttackComplexity, cvssV3PrivilegesRequired, cvssV3UserInteraction, cvssV3Scope, cvssV3ConfidentialityImpact, cvssV3IntegrityImpact, cvssV3AvailabilityImpact, cvssV3BaseScore, cvssV3BaseSeverity) 
+SELECT id, cve, description, cvssV3AttackVector, cvssV3AttackComplexity, cvssV3PrivilegesRequired, cvssV3UserInteraction, cvssV3Scope, cvssV3ConfidentialityImpact, cvssV3IntegrityImpact, cvssV3AvailabilityImpact, convert(cvssV3BaseScore, DECIMAL(3,1)), cvssV3BaseSeverity
+FROM CSVREAD('/tmp/cve2008_8596082657656758476.json.gz/owasp.vulnerability.v3.csv');
+
+INSERT INTO vulnerability (id, cve, description) 
+SELECT id, cve, description
+FROM CSVREAD('/tmp/cve2008_8596082657656758476.json.gz/owasp.vulnerability.plain.csv'); [42122-199]
+	at org.h2.message.DbException.getJdbcSQLException(DbException.java:451)
+	at org.h2.message.DbException.getJdbcSQLException(DbException.java:427)
+	at org.h2.message.DbException.get(DbException.java:205)
+	at org.h2.message.DbException.get(DbException.java:181)
+	at org.h2.expression.ExpressionColumn.getColumnException(ExpressionColumn.java:176)
+	at org.h2.expression.ExpressionColumn.optimize(ExpressionColumn.java:158)
+	at org.h2.command.dml.Select.prepare(Select.java:1245)
+	at org.h2.command.dml.Insert.prepare(Insert.java:332)
+	at org.h2.command.Parser.prepareCommand(Parser.java:689)
+	at org.h2.engine.Session.prepareLocal(Session.java:627)
+	at org.h2.engine.Session.prepareCommand(Session.java:565)
+	at org.h2.jdbc.JdbcConnection.prepareCommand(JdbcConnection.java:1292)
+	at org.h2.jdbc.JdbcStatement.executeInternal(JdbcStatement.java:217)
+	at org.h2.jdbc.JdbcStatement.execute(JdbcStatement.java:205)
+	at test.CsvTransformer.process(CsvTransformer.java:60)
+	at test.Runner.main(Runner.java:18)
+2019-10-12 19:16:43 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Column "ID" not found; SQL statement:
+INSERT INTO vulnerability (id, cve, description, cvssV2Score, cvssV2AccessVector, cvssV2AccessComplexity, cvssV2Authentication, cvssV2ConfidentialityImpact, cvssV2IntegrityImpact, cvssV2AvailabilityImpact, cvssV2Severity, cvssV3AttackVector, cvssV3AttackComplexity, cvssV3PrivilegesRequired, cvssV3UserInteraction, cvssV3Scope, cvssV3ConfidentialityImpact, cvssV3IntegrityImpact, cvssV3AvailabilityImpact, cvssV3BaseScore, cvssV3BaseSeverity) 
+SELECT id, cve, description, convert(cvssV2Score, DECIMAL(3,1)), cvssV2AccessVector, cvssV2AccessComplexity, cvssV2Authentication, cvssV2ConfidentialityImpact, cvssV2IntegrityImpact, cvssV2AvailabilityImpact, cvssV2Severity, cvssV3AttackVector, cvssV3AttackComplexity, cvssV3PrivilegesRequired, cvssV3UserInteraction, cvssV3Scope, cvssV3ConfidentialityImpact, cvssV3IntegrityImpact, cvssV3AvailabilityImpact, convert(cvssV3BaseScore, DECIMAL(3,1)), cvssV3BaseSeverity
+FROM CSVREAD('/tmp/cve2008_8596082657656758476.json.gz/owasp.vulnerability.v2v3.csv');
+
+INSERT INTO vulnerability (id, cve, description, cvssV2Score, cvssV2AccessVector, cvssV2AccessComplexity, cvssV2Authentication, cvssV2ConfidentialityImpact, cvssV2IntegrityImpact, cvssV2AvailabilityImpact, cvssV2Severity) 
+SELECT id, cve, description, convert(cvssV2Score, DECIMAL(3,1)), cvssV2AccessVector, cvssV2AccessComplexity, cvssV2Authentication, cvssV2ConfidentialityImpact, cvssV2IntegrityImpact, cvssV2AvailabilityImpact, cvssV2Severity
+FROM CSVREAD('/tmp/cve2008_8596082657656758476.json.gz/owasp.vulnerability.v2.csv');
+
+INSERT INTO vulnerability (id, cve, description, cvssV3AttackVector, cvssV3AttackComplexity, cvssV3PrivilegesRequired, cvssV3UserInteraction, cvssV3Scope, cvssV3ConfidentialityImpact, cvssV3IntegrityImpact, cvssV3AvailabilityImpact, cvssV3BaseScore, cvssV3BaseSeverity) 
+SELECT id, cve, description, cvssV3AttackVector, cvssV3AttackComplexity, cvssV3PrivilegesRequired, cvssV3UserInteraction, cvssV3Scope, cvssV3ConfidentialityImpact, cvssV3IntegrityImpact, cvssV3AvailabilityImpact, convert(cvssV3BaseScore, DECIMAL(3,1)), cvssV3BaseSeverity
+FROM CSVREAD('/tmp/cve2008_8596082657656758476.json.gz/owasp.vulnerability.v3.csv');
+
+INSERT INTO vulnerability (id, cve, description) 
+SELECT id, cve, description
+FROM CSVREAD('/tmp/cve2008_8596082657656758476.json.gz/owasp.vulnerability.plain.csv'); [42122-199]
+	at org.h2.message.DbException.getJdbcSQLException(DbException.java:451)
+	at org.h2.message.DbException.getJdbcSQLException(DbException.java:427)
+	at org.h2.message.DbException.get(DbException.java:205)
+	at org.h2.message.DbException.get(DbException.java:181)
+	at org.h2.expression.ExpressionColumn.getColumnException(ExpressionColumn.java:176)
+	at org.h2.expression.ExpressionColumn.optimize(ExpressionColumn.java:158)
+	at org.h2.command.dml.Select.prepare(Select.java:1245)
+	at org.h2.command.dml.Insert.prepare(Insert.java:332)
+	at org.h2.command.Parser.prepareCommand(Parser.java:689)
+	at org.h2.engine.Session.prepareLocal(Session.java:627)
+	at org.h2.engine.Session.prepareCommand(Session.java:565)
+	at org.h2.jdbc.JdbcConnection.prepareCommand(JdbcConnection.java:1292)
+	at org.h2.jdbc.JdbcStatement.executeInternal(JdbcStatement.java:217)
+	at org.h2.jdbc.JdbcStatement.execute(JdbcStatement.java:205)
+	at test.CsvTransformer.process(CsvTransformer.java:60)
+	at test.Runner.main(Runner.java:18)
+2019-10-12 19:17:28 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Column "ID" not found; SQL statement:
+INSERT INTO vulnerability (id, cve, description) 
+SELECT id, cve, description
+FROM CSVREAD('/tmp/cve2008_8596082657656758476.json.gz/owasp.vulnerability.plain.csv'); [42122-199]
+	at org.h2.message.DbException.getJdbcSQLException(DbException.java:451)
+	at org.h2.message.DbException.getJdbcSQLException(DbException.java:427)
+	at org.h2.message.DbException.get(DbException.java:205)
+	at org.h2.message.DbException.get(DbException.java:181)
+	at org.h2.expression.ExpressionColumn.getColumnException(ExpressionColumn.java:176)
+	at org.h2.expression.ExpressionColumn.optimize(ExpressionColumn.java:158)
+	at org.h2.command.dml.Select.prepare(Select.java:1245)
+	at org.h2.command.dml.Insert.prepare(Insert.java:332)
+	at org.h2.command.Parser.prepareCommand(Parser.java:689)
+	at org.h2.engine.Session.prepareLocal(Session.java:627)
+	at org.h2.engine.Session.prepareCommand(Session.java:565)
+	at org.h2.jdbc.JdbcConnection.prepareCommand(JdbcConnection.java:1292)
+	at org.h2.jdbc.JdbcStatement.executeInternal(JdbcStatement.java:217)
+	at org.h2.jdbc.JdbcStatement.execute(JdbcStatement.java:205)
+	at test.CsvTransformer.process(CsvTransformer.java:60)
+	at test.Runner.main(Runner.java:18)
+2019-10-12 19:21:02 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Column "ID" not found; SQL statement:
+INSERT INTO vulnerability (id, cve, description) 
+SELECT id, cve, description
+FROM CSVREAD('/tmp/cve2008_8596082657656758476.json.gz/owasp.vulnerability.plain.csv'); [42122-199]
+	at org.h2.message.DbException.getJdbcSQLException(DbException.java:451)
+	at org.h2.message.DbException.getJdbcSQLException(DbException.java:427)
+	at org.h2.message.DbException.get(DbException.java:205)
+	at org.h2.message.DbException.get(DbException.java:181)
+	at org.h2.expression.ExpressionColumn.getColumnException(ExpressionColumn.java:176)
+	at org.h2.expression.ExpressionColumn.optimize(ExpressionColumn.java:158)
+	at org.h2.command.dml.Select.prepare(Select.java:1245)
+	at org.h2.command.dml.Insert.prepare(Insert.java:332)
+	at org.h2.command.Parser.prepareCommand(Parser.java:689)
+	at org.h2.engine.Session.prepareLocal(Session.java:627)
+	at org.h2.engine.Session.prepareCommand(Session.java:565)
+	at org.h2.jdbc.JdbcConnection.prepareCommand(JdbcConnection.java:1292)
+	at org.h2.jdbc.JdbcStatement.executeInternal(JdbcStatement.java:217)
+	at org.h2.jdbc.JdbcStatement.execute(JdbcStatement.java:205)
+	at test.CsvTransformer.process(CsvTransformer.java:60)
+	at test.Runner.main(Runner.java:18)
+2019-10-12 19:21:13 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLSyntaxErrorException: Column "ID" not found; SQL statement:
+INSERT INTO vulnerability (id, cve, description) 
+SELECT id, cve, description
+FROM CSVREAD('/tmp/cve2008_8596082657656758476.json.gz/owasp.vulnerability.plain.csv'); [42122-199]
+	at org.h2.message.DbException.getJdbcSQLException(DbException.java:451)
+	at org.h2.message.DbException.getJdbcSQLException(DbException.java:427)
+	at org.h2.message.DbException.get(DbException.java:205)
+	at org.h2.message.DbException.get(DbException.java:181)
+	at org.h2.expression.ExpressionColumn.getColumnException(ExpressionColumn.java:176)
+	at org.h2.expression.ExpressionColumn.optimize(ExpressionColumn.java:158)
+	at org.h2.command.dml.Select.prepare(Select.java:1245)
+	at org.h2.command.dml.Insert.prepare(Insert.java:332)
+	at org.h2.command.Parser.prepareCommand(Parser.java:689)
+	at org.h2.engine.Session.prepareLocal(Session.java:627)
+	at org.h2.engine.Session.prepareCommand(Session.java:565)
+	at org.h2.jdbc.JdbcConnection.prepareCommand(JdbcConnection.java:1292)
+	at org.h2.jdbc.JdbcStatement.executeInternal(JdbcStatement.java:217)
+	at org.h2.jdbc.JdbcStatement.execute(JdbcStatement.java:205)
+	at test.CsvTransformer.process(CsvTransformer.java:60)
+	at test.Runner.main(Runner.java:18)
+2019-10-12 19:22:56 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "'-2459565876494606560' (VULNERABILITY: ""ID"" INT DEFAULT (NEXT VALUE FOR ""PUBLIC"".""SYSTEM_SEQUENCE_B463E513_036A_4E31_B170_2E84A9EEA415"") NOT NULL NULL_TO_DEFAULT SEQUENCE ""PUBLIC"".""SYSTEM_SEQUENCE_B463E513_036A_4E31_B170_2E84A9EEA415"")"; SQL statement:
+INSERT INTO vulnerability (id, cve, description, cvssV2Score, cvssV2AccessVector, cvssV2AccessComplexity, cvssV2Authentication, cvssV2ConfidentialityImpact, cvssV2IntegrityImpact, cvssV2AvailabilityImpact, cvssV2Severity, cvssV3AttackVector, cvssV3AttackComplexity, cvssV3PrivilegesRequired, cvssV3UserInteraction, cvssV3Scope, cvssV3ConfidentialityImpact, cvssV3IntegrityImpact, cvssV3AvailabilityImpact, cvssV3BaseScore, cvssV3BaseSeverity) 
+SELECT id, cve, description, convert(cvssV2Score, DECIMAL(3,1)), cvssV2AccessVector, cvssV2AccessComplexity, cvssV2Authentication, cvssV2ConfidentialityImpact, cvssV2IntegrityImpact, cvssV2AvailabilityImpact, cvssV2Severity, cvssV3AttackVector, cvssV3AttackComplexity, cvssV3PrivilegesRequired, cvssV3UserInteraction, cvssV3Scope, cvssV3ConfidentialityImpact, cvssV3IntegrityImpact, cvssV3AvailabilityImpact, convert(cvssV3BaseScore, DECIMAL(3,1)), cvssV3BaseSeverity
+FROM CSVREAD('/tmp/cve2012_8078575513685111731.json.gz/owasp.vulnerability.v2v3.csv') -- row #2 ('-2459565876494606560', 'CVE-2012-0433', 'The install-chef-suse.sh script shipped with crowbar before 2012-10-02 is creating files containing confidential data with insecure permissions, allowing local users to read confidential data.', 2.1, 'LOCAL', 'LOW', 'NONE', 'PARTIAL', 'NONE', 'NONE', 'LOW', 'LOCAL', 'LOW', 'LOW', 'NONE', 'UNCHANGED', 'HIGH', 'NONE', 'NONE', 5.5, 'MEDIUM') [22018-199]
+2019-10-12 19:23:08 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Data conversion error converting "'-307445734561822732' (VULNERABILITY: ""ID"" INT DEFAULT (NEXT VALUE FOR ""PUBLIC"".""SYSTEM_SEQUENCE_B463E513_036A_4E31_B170_2E84A9EEA415"") NOT NULL NULL_TO_DEFAULT SEQUENCE ""PUBLIC"".""SYSTEM_SEQUENCE_B463E513_036A_4E31_B170_2E84A9EEA415"")"; SQL statement:
+INSERT INTO vulnerability (id, cve, description, cvssV2Score, cvssV2AccessVector, cvssV2AccessComplexity, cvssV2Authentication, cvssV2ConfidentialityImpact, cvssV2IntegrityImpact, cvssV2AvailabilityImpact, cvssV2Severity, cvssV3AttackVector, cvssV3AttackComplexity, cvssV3PrivilegesRequired, cvssV3UserInteraction, cvssV3Scope, cvssV3ConfidentialityImpact, cvssV3IntegrityImpact, cvssV3AvailabilityImpact, cvssV3BaseScore, cvssV3BaseSeverity) 
+SELECT id, cve, description, convert(cvssV2Score, DECIMAL(3,1)), cvssV2AccessVector, cvssV2AccessComplexity, cvssV2Authentication, cvssV2ConfidentialityImpact, cvssV2IntegrityImpact, cvssV2AvailabilityImpact, cvssV2Severity, cvssV3AttackVector, cvssV3AttackComplexity, cvssV3PrivilegesRequired, cvssV3UserInteraction, cvssV3Scope, cvssV3ConfidentialityImpact, cvssV3IntegrityImpact, cvssV3AvailabilityImpact, convert(cvssV3BaseScore, DECIMAL(3,1)), cvssV3BaseSeverity
+FROM CSVREAD('/tmp/cve2008_8596082657656758476.json.gz/owasp.vulnerability.v2v3.csv') -- row #2 ('-307445734561822732', 'CVE-2008-3604', 'SQL injection vulnerability in bannerclick.php in ZeeBuddy 2.1 allows remote attackers to execute arbitrary SQL commands via the adid parameter.', 7.5, 'NETWORK', 'LOW', 'NONE', 'PARTIAL', 'PARTIAL', 'PARTIAL', 'HIGH', 'NETWORK', 'LOW', 'NONE', 'NONE', 'UNCHANGED', 'HIGH', 'HIGH', 'HIGH', 9.8, 'CRITICAL') [22018-199]
