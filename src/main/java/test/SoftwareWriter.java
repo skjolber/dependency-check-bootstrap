@@ -35,34 +35,42 @@ public class SoftwareWriter {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SoftwareWriter.class);
 
-	private static Map<String, Integer> softwares = new HashMap<>();
-	private static AtomicInteger counter = new AtomicInteger(1);
-   
 	private CSVWriter cpeEntryWriter;
 	private Path cpeEntryPath;
 
 	private CSVWriter softwareWriter;
-	private Path softwarePath;
 	
 	private String cpeStartsWithFilter;
 	
     private final VulnerableSoftwareBuilder builder = new VulnerableSoftwareBuilder();
 
     private int softwareCount = 0;
+    private String softwareTemplate = "owasp.software.%d.csv";
+    private Path directory;
     
-	public SoftwareWriter(Path directory, Settings settings) {
+    private int softwareRows = 0;
+    private int softwareLimit = 100 * 1000;
+    
+    private CpeCache cpes;
+    
+	public SoftwareWriter(Path directory, Settings settings, CpeCache cpes) {
+		this.directory = directory;
+		this.cpes = cpes;
+		
 		cpeEntryPath = directory.resolve("owasp.cpeEntry.csv");
-		softwarePath = directory.resolve("owasp.software.csv");
 		
         this.cpeStartsWithFilter = settings.getString(Settings.KEYS.CVE_CPE_STARTS_WITH_FILTER, "cpe:2.3:a:");
 	}	
+	
+	private Path nextSoftwareFileName() {
+		String fileName = String.format(softwareTemplate, softwareCount);
+		softwareCount++;
+		
+		return directory.resolve(fileName);
+	}
 
-    public void write(int vulnerabilityId, DefCveItem cve, String baseEcosystem) throws CpeValidationException {
+    public void write(int vulnerabilityId, DefCveItem cve, String baseEcosystem) throws Exception {
     	final List<VulnerableSoftware> software = parseCpes(cve);
-
-        // INSERT_CPE=INSERT INTO cpeEntry (part, vendor, product, version, update_version, edition, lang, sw_edition, target_sw, target_hw, other, ecosystem) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        // SELECT_CPE_ID=SELECT id FROM cpeEntry WHERE part=? AND vendor=? AND product=? AND version=? AND update_version=? AND edition=? AND lang=? AND sw_edition=? AND target_sw=? AND target_hw=? AND other=?
-        // INSERT_SOFTWARE=INSERT INTO software (cveid, cpeEntryId, versionEndExcluding, versionEndIncluding, versionStartExcluding, versionStartIncluding, vulnerable) VALUES (?, ?, ?, ?, ?, ?, ?)
 
         String[] insert = new String[7];
 
@@ -78,6 +86,13 @@ public class SoftwareWriter {
             insert[6] = Boolean.toString(parsedCpe.isVulnerable());
             
             softwareWriter.writeNext(insert);
+            
+            softwareRows++;
+            if( (softwareRows % softwareLimit) == 0) {
+            	softwareWriter.close(); 
+        		softwareWriter = new CSVWriter(Files.newBufferedWriter(nextSoftwareFileName(), StandardCharsets.UTF_8));
+        		softwareWriter.writeNext(new String[]{"cveid", "cpeEntryId", "versionEndExcluding", "versionEndIncluding", "versionStartExcluding", "versionStartIncluding", "vulnerable"});
+            }
         }
         
     }
@@ -86,7 +101,7 @@ public class SoftwareWriter {
 		cpeEntryWriter = new CSVWriter(Files.newBufferedWriter(cpeEntryPath, StandardCharsets.UTF_8));
 		cpeEntryWriter.writeNext(new String[]{"id", "part", "vendor", "product", "version", "update_version", "edition", "lang", "sw_edition", "target_sw", "target_hw", "other", "ecosystem"});
 		
-		softwareWriter = new CSVWriter(Files.newBufferedWriter(softwarePath, StandardCharsets.UTF_8));
+		softwareWriter = new CSVWriter(Files.newBufferedWriter(nextSoftwareFileName(), StandardCharsets.UTF_8));
 		softwareWriter.writeNext(new String[]{"cveid", "cpeEntryId", "versionEndExcluding", "versionEndIncluding", "versionStartExcluding", "versionStartIncluding", "vulnerable"});
 	}
 	
@@ -109,8 +124,17 @@ public class SoftwareWriter {
 
 	public List<String> getVulnerableSoftwareSql()  {
 		List<String> sqls = new ArrayList<>();
+		System.out.println("Return " + softwareCount + " for " + directory + " software");
 		try {
-			sqls.add(String.format(IOUtils.toString(getClass().getResourceAsStream("/sql/software.sql"), StandardCharsets.UTF_8), softwarePath.toAbsolutePath().toString()));
+			String template = IOUtils.toString(getClass().getResourceAsStream("/sql/software.sql"), StandardCharsets.UTF_8);
+			
+			for(int i = 0; i < softwareCount; i++) {
+				String fileName = String.format(softwareTemplate, i);
+				Path path = directory.resolve(fileName);
+				String sql = String.format(template, path.toAbsolutePath().toString());
+				
+				sqls.add(sql);
+			}
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
@@ -216,17 +240,11 @@ public class SoftwareWriter {
     public int spawnVulnerableSoftware (VulnerableSoftware parsedCpe, String baseEcosystem) {
     	String key = getKey(parsedCpe);
     	
-    	int id;
-    	synchronized(softwares) {
-	    	Integer integer = softwares.get(key);
-	    	if(integer != null) {
-	    		return integer;
-	    	}
-	
-	    	id = counter.getAndIncrement();
-
-	    	softwares.put(key, id);
+    	int id = cpes.get(key);
+    	if(id > 0) {
+    		return id;
     	}
+    	id = -id;
     	
     	String[] row = new String[13];
     	

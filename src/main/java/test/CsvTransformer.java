@@ -90,7 +90,7 @@ public class CsvTransformer {
 			}
 			
 
-			
+			CpeCache cpeCache = new CpeCache();
 			// last ned og parse 4
 			// så submit nedlastning av resten
 			// etter at prosesseringsjobber submitted
@@ -117,7 +117,7 @@ public class CsvTransformer {
 							
 							System.out.println("Process " + url + " -> " + resolve);
 			
-							NvdCveParser parser = new NvdCveParser(resolve, idSpace, settings);
+							NvdCveParser parser = new NvdCveParser(resolve, idSpace, settings, cpeCache);
 							
 							parser.parse(url);
 

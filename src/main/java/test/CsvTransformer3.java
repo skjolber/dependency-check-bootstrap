@@ -74,6 +74,8 @@ public class CsvTransformer3 {
 
 			int processWhileDownloading = Math.min(urls.size(), downloadThreads);
 			
+			CpeCache cpeCache = new CpeCache();
+			
 			try (Connection keepAliveConnection = connectionFactory.getConnection()) {
 				for(int i = 0; i < urls.size(); i++) {
 					URL url = urls.get(i);
@@ -84,7 +86,7 @@ public class CsvTransformer3 {
 						Files.createDirectory(d);
 					}
 	
-					ProcessTask task = new ProcessTask(url, d, idSpace, settings, connectionFactory, processExecutor);
+					ProcessTask task = new ProcessTask(url, d, idSpace, settings, connectionFactory, processExecutor, cpeCache);
 					if(i < processWhileDownloading) {
 						System.out.println("Process while downloading " + url);
 						processExecutor.submit(task);
@@ -102,28 +104,29 @@ public class CsvTransformer3 {
 						break;
 					}
 		        }			
-				
-	            long postProcess = System.currentTimeMillis();
-	            postProcessTables();
-	            
-				while (processExecutor.getActiveCount() > 0 || !processExecutor.getQueue().isEmpty() || downloadExecutor.getActiveCount() > 0 || !downloadExecutor.getQueue().isEmpty()) {
-					try {
-						Thread.sleep(20);
-					} catch (InterruptedException e) {
-						break;
-					}
-		        }
 
-	            processExecutor.shutdown();
-	            downloadExecutor.shutdown();
-
-	            System.out.println("Post-processed in " + (System.currentTimeMillis() - postProcess));
 			}
+            long postProcess = System.currentTimeMillis();
+            postProcessTables();
+            
+			while (processExecutor.getActiveCount() > 0 || !processExecutor.getQueue().isEmpty() || downloadExecutor.getActiveCount() > 0 || !downloadExecutor.getQueue().isEmpty()) {
+				try {
+					Thread.sleep(20);
+				} catch (InterruptedException e) {
+					break;
+				}
+	        }
+
+            System.out.println("Post-processed in " + (System.currentTimeMillis() - postProcess));
+
+            processExecutor.shutdown();
+            downloadExecutor.shutdown();
+			
 		}
 		
 		
 		
-		System.out.println("Ran in " + (System.currentTimeMillis() - time) / 1000 + "ms");
+		System.out.println("Ran in " + (System.currentTimeMillis() - time) + "ms");
 	}
 
 	private List<URL> getUrls() throws MalformedURLException {
@@ -173,20 +176,17 @@ public class CsvTransformer3 {
     private void postProcessTables() throws Exception {
     	List<String> sqls = IOUtils.readLines(getClass().getResourceAsStream("/data/constraints.sql"), StandardCharsets.UTF_8);
     	System.out.println("Got " + sqls.size() + " post-processing statements");
-		Runnable sqlTask = () -> {
-			long sqlTime = System.currentTimeMillis();
-            try (Connection conn = connectionFactory.getConnection()) {
-        		for(String sql : sqls) {
-	            	try (Statement statement = conn.createStatement()) {
-	            		statement.execute(sql);
-	            	}
-        		}
-            } catch (SQLException e) {
-            	e.printStackTrace();
-            	throw new RuntimeException(e);
-			}
-			System.out.println("Constraint in " + (System.currentTimeMillis() - sqlTime));
-		};
-		processExecutor.submit(sqlTask);
+		long sqlTime = System.currentTimeMillis();
+        try (Connection conn = connectionFactory.getConnection()) {
+    		for(String sql : sqls) {
+            	try (Statement statement = conn.createStatement()) {
+            		statement.execute(sql);
+            	}
+    		}
+        } catch (SQLException e) {
+        	e.printStackTrace();
+        	throw new RuntimeException(e);
+		}
+		System.out.println("Constraint in " + (System.currentTimeMillis() - sqlTime));
     }     
 }

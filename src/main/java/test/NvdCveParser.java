@@ -40,6 +40,8 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.zip.GZIPInputStream;
 import org.owasp.dependencycheck.data.nvdcve.CveDB;
@@ -80,7 +82,7 @@ public final class NvdCveParser {
     private final CweEntryWriter cweEntryWriter;
     private final ReferenceWriter referenceWriter;
     private final SoftwareWriter softwareWriter;
-    
+
     private Path resolve;
     
     /**
@@ -91,7 +93,7 @@ public final class NvdCveParser {
      * @param db a reference to the database
      * @throws IOException 
      */
-    public NvdCveParser(Path resolve, IdSpace idSpace, Settings settings) throws IOException {
+    public NvdCveParser(Path resolve, IdSpace idSpace, Settings settings, CpeCache cpes) throws IOException {
     	this.resolve = resolve;
         this.cpeStartsWithFilter = settings.getString(Settings.KEYS.CVE_CPE_STARTS_WITH_FILTER, "cpe:2.3:a:");
         
@@ -102,7 +104,7 @@ public final class NvdCveParser {
 		
 		referenceWriter = new ReferenceWriter(resolve);
 		
-		softwareWriter = new SoftwareWriter(resolve, settings);
+		softwareWriter = new SoftwareWriter(resolve, settings, cpes);
     }
 
     /**

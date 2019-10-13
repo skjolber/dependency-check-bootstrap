@@ -22,8 +22,10 @@ public class ProcessTask implements Runnable {
 	private URL source;
 	private Path destination;
 	
+	private CpeCache cpes;
+	
 	public ProcessTask(URL source, Path destination, IdSpace idSpace, Settings settings,
-			ConnectionFactory connectionFactory, ThreadPoolExecutor processExecutor) {
+			ConnectionFactory connectionFactory, ThreadPoolExecutor processExecutor, CpeCache cpes) {
 		super();
 		this.source = source;
 		this.destination = destination;
@@ -31,6 +33,7 @@ public class ProcessTask implements Runnable {
 		this.settings = settings;
 		this.connectionFactory = connectionFactory;
 		this.processExecutor = processExecutor;
+		this.cpes = cpes;
 	}
 
 	public DownloadTask getDownloadTask() throws MalformedURLException {
@@ -48,7 +51,7 @@ public class ProcessTask implements Runnable {
 	@Override
 	public void run() {
 		try {
-			NvdCveParser parser = new NvdCveParser(destination, idSpace, settings);
+			NvdCveParser parser = new NvdCveParser(destination, idSpace, settings, cpes);
 			
 			parser.parse(source);
 	

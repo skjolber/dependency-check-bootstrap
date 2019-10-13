@@ -98,6 +98,8 @@ public class CsvTransformer2 {
 			
 			VulnerabilityHandler handler = new VulnerabilityHandler(idSpace);
 
+			CpeCache cpeCache = new CpeCache();
+			
 			try (Connection keepAliveConnection = connectionFactory.getConnection()) {
 				
 				List<Runnable> tasks = new ArrayList<>();
@@ -116,7 +118,7 @@ public class CsvTransformer2 {
 							
 							System.out.println("Process " + url + " -> " + resolve);
 			
-							NvdCveParser parser = new NvdCveParser(resolve, idSpace, settings);
+							NvdCveParser parser = new NvdCveParser(resolve, idSpace, settings, cpeCache);
 							
 							parser.parse(url);
 
