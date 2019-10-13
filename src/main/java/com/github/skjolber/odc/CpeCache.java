@@ -1,4 +1,4 @@
-package test;
+package com.github.skjolber.odc;
 
 import java.util.HashMap;
 import java.util.Map;

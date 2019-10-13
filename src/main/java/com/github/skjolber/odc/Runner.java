@@ -1,10 +1,8 @@
-package test;
+package com.github.skjolber.odc;
 
 import java.io.File;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 
-public class Runner3 {
+public class Runner {
 
 	public static final void main(String[] args) throws Exception {
 		
@@ -13,11 +11,9 @@ public class Runner3 {
 			File file = new File("/tmp/testdb");
 			file.delete();
 			
-			Path path = Paths.get("/home/skjolber/workspaces/dependencycheck/test/src/main/resources/gz");
+			CsvDatabaseGenerator transformer = new CsvDatabaseGenerator();
 			
-			CsvTransformer3 transformer = new CsvTransformer3();
-			
-			transformer.process(path);
+			transformer.process();
 		}
 	}
 	

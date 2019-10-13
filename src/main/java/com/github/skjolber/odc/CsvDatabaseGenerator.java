@@ -1,7 +1,8 @@
-package test;
+package com.github.skjolber.odc;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.Thread.UncaughtExceptionHandler;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.channels.FileChannel;
@@ -10,6 +11,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.sql.Connection;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
@@ -25,8 +27,10 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.owasp.dependencycheck.utils.Settings;
 
-public class CsvTransformer3 {
+public class CsvDatabaseGenerator implements UncaughtExceptionHandler {
 
+	protected volatile Throwable uncaughtException = null;
+	
 	private Settings settings = new Settings();
 	
 	private final int downloadThreads;
@@ -37,8 +41,8 @@ public class CsvTransformer3 {
 	private ThreadPoolExecutor processExecutor;
 	private ThreadPoolExecutor downloadExecutor;
 	
-	public CsvTransformer3() throws Exception {
-		settings.setString(Settings.KEYS.DB_CONNECTION_STRING, "jdbc:h2:file:/tmp/testdb");
+	public CsvDatabaseGenerator() throws Exception {
+		settings.setString(Settings.KEYS.DB_CONNECTION_STRING, "jdbc:h2:file:/tmp/testdb;AUTOCOMMIT=ON;LOG=0;CACHE_SIZE=65536;");
 		settings.setString(Settings.KEYS.H2_DATA_DIRECTORY, "/tmp/testdb");
 		this.connectionFactory = new ConnectionFactory();
 		
@@ -50,88 +54,88 @@ public class CsvTransformer3 {
 		this.processThreads = Runtime.getRuntime().availableProcessors();
 		
 		this.processExecutor = (ThreadPoolExecutor) Executors.newFixedThreadPool(processThreads);
+		this.processExecutor.setThreadFactory(new UncaughtExceptionHandlerThreadFactory(processExecutor.getThreadFactory(), this));
+		
 		this.downloadExecutor = (ThreadPoolExecutor) Executors.newFixedThreadPool(downloadThreads);
+		this.downloadExecutor.setThreadFactory(new UncaughtExceptionHandlerThreadFactory(downloadExecutor.getThreadFactory(), this));		
 	}
 	
-	public void process(Path source) throws Exception {
+	public void process() throws Exception {
 		long time = System.currentTimeMillis();
+		
 		Path destination = Paths.get("/tmp");
 		
-		try (Stream<Path> walk = Files.walk(source)) {
+		List<URL> urls = getUrls();
+		
+		IdSpace idSpace = new IdSpace(1, Integer.MAX_VALUE / 2, urls.size());
 
-			/*
-			List<Path> result = getFiles(walk);
-			
-			List<URL> urls = new ArrayList<>();
-			for(Path path : result) {
-				urls.add(path.toUri().toURL());
-			}
-			*/
+		int processWhileDownloading = Math.min(urls.size(), downloadThreads);
+		
+		CpeCache cpeCache = new CpeCache();
+		
+		try (Connection keepAliveConnection = connectionFactory.getConnection()) {
+			for(int i = 0; i < urls.size(); i++) {
+				URL url = urls.get(i);
 
-			List<URL> urls = getUrls();
-			
-			IdSpace idSpace = new IdSpace(1, Integer.MAX_VALUE / 2, urls.size());
+				Path d = destination.resolve(FilenameUtils.getName(url.getPath()));
 
-			int processWhileDownloading = Math.min(urls.size(), downloadThreads);
-			
-			CpeCache cpeCache = new CpeCache();
-			
-			try (Connection keepAliveConnection = connectionFactory.getConnection()) {
-				for(int i = 0; i < urls.size(); i++) {
-					URL url = urls.get(i);
-	
-					Path d = destination.resolve(FilenameUtils.getName(url.getPath()));
-	
-					if(!Files.exists(d)) {
-						Files.createDirectory(d);
-					}
-	
-					ProcessTask task = new ProcessTask(url, d, idSpace, settings, connectionFactory, processExecutor, cpeCache);
-					if(i < processWhileDownloading) {
-						System.out.println("Process while downloading " + url);
-						processExecutor.submit(task);
-					} else {
-						// rest: download, then process
-						System.out.println("Download, then process " + url);
-						downloadExecutor.submit(task.getDownloadTask());
-					}
+				if(!Files.exists(d)) {
+					Files.createDirectory(d);
 				}
-				
-				while (processExecutor.getActiveCount() > 0 || !processExecutor.getQueue().isEmpty() || downloadExecutor.getActiveCount() > 0 || !downloadExecutor.getQueue().isEmpty()) {
-					try {
-						Thread.sleep(20);
-					} catch (InterruptedException e) {
-						break;
-					}
-		        }			
 
+				GenerateCsvTask task = new GenerateCsvTask(url, d, idSpace, settings, connectionFactory, processExecutor, cpeCache);
+				if(i < processWhileDownloading) {
+					System.out.println("Process while downloading " + url);
+					processExecutor.submit(task);
+				} else {
+					// rest: download, then process
+					System.out.println("Download, then process " + url);
+					downloadExecutor.submit(task.getDownloadTask());
+				}
 			}
-            long postProcess = System.currentTimeMillis();
-            postProcessTables();
-            
-			while (processExecutor.getActiveCount() > 0 || !processExecutor.getQueue().isEmpty() || downloadExecutor.getActiveCount() > 0 || !downloadExecutor.getQueue().isEmpty()) {
+
+			while (!processExecutor.isShutdown() && !downloadExecutor.isShutdown() && (processExecutor.getActiveCount() > 0 || !processExecutor.getQueue().isEmpty() || downloadExecutor.getActiveCount() > 0 || !downloadExecutor.getQueue().isEmpty())) {
 				try {
 					Thread.sleep(20);
 				} catch (InterruptedException e) {
 					break;
 				}
-	        }
+	        }			
 
-            System.out.println("Post-processed in " + (System.currentTimeMillis() - postProcess));
-
-            processExecutor.shutdown();
-            downloadExecutor.shutdown();
-			
 		}
-		
-		
-		
+
+        processExecutor.shutdown();
+        downloadExecutor.shutdown();
+
+        postProcessTables();
+
+        // database cleanup has zero effect, here
+        
+        // list results
+        String[] tables = new String[] {"software", "cpeEntry", "reference", "vulnerability", "properties", "cweEntry"};
+        
+        try (Connection conn = connectionFactory.getConnection()) {
+        	try (Statement statement = conn.createStatement()) {
+        		for(String table : tables) {
+	        		ResultSet executeQuery = statement.executeQuery("SELECT COUNT(*) AS rows FROM " + table);
+	        		executeQuery.next();
+	        		int int1 = executeQuery.getInt("rows");
+	        		System.out.println("Got " + int1 + " rows for " + table);
+        		}
+    		}
+        } catch (SQLException e) {
+        	throw new RuntimeException(e);
+		}        
+        
+        if(uncaughtException != null) {
+        	throw new RuntimeException("Underlying thread pool threw exception");
+        }
 		System.out.println("Ran in " + (System.currentTimeMillis() - time) + "ms");
 	}
 
 	private List<URL> getUrls() throws MalformedURLException {
 		List<URL> urls = new ArrayList<>();
-		for(int i = 2005; i <= 2019; i++) {
+		for(int i = 2002; i <= 2019; i++) {
 			urls.add(new URL(String.format("https://nvd.nist.gov/feeds/json/cve/1.0/nvdcve-1.0-%d.json.gz", i)));
 		}
 		return urls;
@@ -158,7 +162,7 @@ public class CsvTransformer3 {
 	}
 	
     private void createTables(Connection conn) throws Exception {
-        try (InputStream is = getClass().getResourceAsStream("/data/initialize2.sql")) {
+        try (InputStream is = getClass().getResourceAsStream("/data/initialize.sql")) {
             final String dbStructure = IOUtils.toString(is, StandardCharsets.UTF_8);
 
             Statement statement = null;
@@ -174,19 +178,27 @@ public class CsvTransformer3 {
     } 	
     
     private void postProcessTables() throws Exception {
+        long postProcess = System.currentTimeMillis();
+        
     	List<String> sqls = IOUtils.readLines(getClass().getResourceAsStream("/data/constraints.sql"), StandardCharsets.UTF_8);
-    	System.out.println("Got " + sqls.size() + " post-processing statements");
-		long sqlTime = System.currentTimeMillis();
+    	System.out.println("Got " + sqls.size() + " post-processing statements, running them in sequence");
         try (Connection conn = connectionFactory.getConnection()) {
     		for(String sql : sqls) {
             	try (Statement statement = conn.createStatement()) {
             		statement.execute(sql);
             	}
     		}
-        } catch (SQLException e) {
-        	e.printStackTrace();
-        	throw new RuntimeException(e);
-		}
-		System.out.println("Constraint in " + (System.currentTimeMillis() - sqlTime));
+        }
+        System.out.println("Post-processed in " + (System.currentTimeMillis() - postProcess));
     }     
+    
+	@Override
+	public void uncaughtException(Thread t, Throwable e) {
+		this.uncaughtException = e;
+		
+		e.printStackTrace(); 
+		
+        processExecutor.shutdown();
+        downloadExecutor.shutdown();		
+	}    
 }

@@ -1,4 +1,4 @@
-package test;
+package com.github.skjolber.odc;
 
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -12,7 +12,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 import org.apache.commons.io.FilenameUtils;
 import org.owasp.dependencycheck.utils.Settings;
 
-public class ProcessTask implements Runnable {
+public class GenerateCsvTask implements Runnable {
 
 	private ThreadPoolExecutor processExecutor;
 	private IdSpace idSpace;
@@ -24,7 +24,7 @@ public class ProcessTask implements Runnable {
 	
 	private CpeCache cpes;
 	
-	public ProcessTask(URL source, Path destination, IdSpace idSpace, Settings settings,
+	public GenerateCsvTask(URL source, Path destination, IdSpace idSpace, Settings settings,
 			ConnectionFactory connectionFactory, ThreadPoolExecutor processExecutor, CpeCache cpes) {
 		super();
 		this.source = source;
@@ -55,22 +55,8 @@ public class ProcessTask implements Runnable {
 			
 			parser.parse(source);
 	
-			List<String> sqls = parser.getSql();
-	
-			for(String sql : sqls) {
-				Runnable sqlTask = () -> {
-	
-					long sqlTime = System.currentTimeMillis();
-		            try (Connection conn = connectionFactory.getConnection()) {
-		            	try (Statement statement = conn.createStatement()) {
-		            		statement.execute(sql);
-		            	}
-		            } catch (SQLException e) {
-		            	throw new RuntimeException(e);
-					}
-					System.out.println(source + " sql in " + (System.currentTimeMillis() - sqlTime));
-				};
-				processExecutor.submit(sqlTask);
+			for(String sql : parser.getSql()) {
+				processExecutor.submit(new InsertCsvTask(sql, connectionFactory));
 			}
 		} catch(Exception e) {
 			throw new RuntimeException(e);

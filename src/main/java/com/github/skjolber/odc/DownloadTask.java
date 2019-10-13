@@ -1,4 +1,4 @@
-package test;
+package com.github.skjolber.odc;
 
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -12,12 +12,12 @@ import org.apache.commons.compress.utils.IOUtils;
 public class DownloadTask implements Runnable {
 
 	private ThreadPoolExecutor processExecutor;
-	private ProcessTask processTask;
+	private GenerateCsvTask processTask;
 	private Path destination;
 	
 	private URL source;
 	
-	public DownloadTask(URL source, Path destination, ProcessTask processTask, ThreadPoolExecutor processExecutor) {
+	public DownloadTask(URL source, Path destination, GenerateCsvTask processTask, ThreadPoolExecutor processExecutor) {
 		super();
 		this.source = source;
 		this.destination = destination;
@@ -37,7 +37,6 @@ public class DownloadTask implements Runnable {
 			System.out.println("Downloaded " + source + " to " + destination);
 			processExecutor.submit(processTask);
 		} catch(Exception e) {
-			e.printStackTrace();
 			throw new RuntimeException(e);
 		}
 	}

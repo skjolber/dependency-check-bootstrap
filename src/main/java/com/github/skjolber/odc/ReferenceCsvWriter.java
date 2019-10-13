@@ -1,4 +1,4 @@
-package test;
+package com.github.skjolber.odc;
 
 
 
@@ -6,7 +6,6 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.sql.SQLException;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -23,12 +22,12 @@ import org.owasp.dependencycheck.data.nvd.json.Reference;
 
 import com.opencsv.CSVWriter;
 
-public class ReferenceWriter {
+public class ReferenceCsvWriter {
 
 	private CSVWriter writer;
 	private Path path;
 	
-	public ReferenceWriter(Path directory) {
+	public ReferenceCsvWriter(Path directory) {
 		path = directory.resolve("owasp.reference.csv");
 	}	
 

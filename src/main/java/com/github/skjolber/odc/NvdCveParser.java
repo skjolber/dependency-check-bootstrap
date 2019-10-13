@@ -15,7 +15,29 @@
  *
  * Copyright (c) 2018 Steve Springett. All Rights Reserved.
  */
-package test;
+package com.github.skjolber.odc;
+
+import static java.nio.charset.StandardCharsets.UTF_8;
+
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.zip.GZIPInputStream;
+
+import org.owasp.dependencycheck.data.nvd.json.CpeMatchStreamCollector;
+import org.owasp.dependencycheck.data.nvd.json.DefCveItem;
+import org.owasp.dependencycheck.data.nvd.json.NodeFlatteningCollector;
+import org.owasp.dependencycheck.data.update.exception.UpdateException;
+import org.owasp.dependencycheck.utils.Settings;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -24,48 +46,6 @@ import com.google.gson.stream.JsonToken;
 
 import us.springett.parsers.cpe.exceptions.CpeValidationException;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.URL;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.sql.Connection;
-import java.sql.SQLException;
-
-import static java.nio.charset.StandardCharsets.UTF_8;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
-import java.util.zip.GZIPInputStream;
-import org.owasp.dependencycheck.data.nvdcve.CveDB;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.owasp.dependencycheck.data.nvd.json.DefCveItem;
-import org.apache.commons.lang3.StringUtils;
-import org.owasp.dependencycheck.analyzer.AbstractNpmAnalyzer;
-import org.owasp.dependencycheck.analyzer.CMakeAnalyzer;
-import org.owasp.dependencycheck.analyzer.ComposerLockAnalyzer;
-import org.owasp.dependencycheck.analyzer.JarAnalyzer;
-import org.owasp.dependencycheck.analyzer.PythonPackageAnalyzer;
-import org.owasp.dependencycheck.analyzer.RubyBundleAuditAnalyzer;
-import org.owasp.dependencycheck.data.nvd.json.CpeMatchStreamCollector;
-import org.owasp.dependencycheck.data.nvd.json.NodeFlatteningCollector;
-import org.owasp.dependencycheck.data.update.exception.UpdateException;
-import org.owasp.dependencycheck.dependency.Vulnerability;
-import org.owasp.dependencycheck.utils.Settings;
-
-/**
- * Parser and processor of NVD CVE JSON data feeds.
- *
- * @author Jeremy Long
- */
 public final class NvdCveParser {
 
     /**
@@ -78,33 +58,23 @@ public final class NvdCveParser {
      */
     private final String cpeStartsWithFilter;
     
-    private final VulnerabilityWriter vulnerabilityWriter;
+    private final VulnerabilityCsvWriter vulnerabilityWriter;
     private final CweEntryWriter cweEntryWriter;
-    private final ReferenceWriter referenceWriter;
-    private final SoftwareWriter softwareWriter;
+    private final ReferenceCsvWriter referenceWriter;
+    private final SoftwareCsvWriter softwareWriter;
 
-    private Path resolve;
+    private Path directory;
     
-    /**
-     * Creates a new NVD CVE JSON Parser.
-     * @param handler 
-     *
-     * @param settings the dependency-check settings
-     * @param db a reference to the database
-     * @throws IOException 
-     */
-    public NvdCveParser(Path resolve, IdSpace idSpace, Settings settings, CpeCache cpes) throws IOException {
-    	this.resolve = resolve;
+
+    public NvdCveParser(Path directory, IdSpace idSpace, Settings settings, CpeCache cpes) throws IOException {
+    	this.directory = directory;
         this.cpeStartsWithFilter = settings.getString(Settings.KEYS.CVE_CPE_STARTS_WITH_FILTER, "cpe:2.3:a:");
         
-        vulnerabilityWriter = new VulnerabilityWriter(resolve, idSpace.next());
-        vulnerabilityWriter.open();
+        this.vulnerabilityWriter = new VulnerabilityCsvWriter(directory, idSpace.next());
 		
-        cweEntryWriter = new CweEntryWriter(resolve);
-		
-		referenceWriter = new ReferenceWriter(resolve);
-		
-		softwareWriter = new SoftwareWriter(resolve, settings, cpes);
+        this.cweEntryWriter = new CweEntryWriter(directory);
+        this.referenceWriter = new ReferenceCsvWriter(directory);
+        this.softwareWriter = new SoftwareCsvWriter(directory, settings, cpes);
     }
 
     /**
@@ -123,7 +93,7 @@ public final class NvdCveParser {
         try (InputStream in = url.openStream()) {
         	parse(in);
         }
-        System.out.println("Download, parse and generate CSV in " + (System.currentTimeMillis() - time) + "ms for " + resolve);
+        System.out.println("Download, parse and generate CSV in " + (System.currentTimeMillis() - time) + "ms for " + directory);
 
     }
     
@@ -133,7 +103,7 @@ public final class NvdCveParser {
     	try (InputStream fin = Files.newInputStream(path)) {
 	        parse(fin);
 	    }
-        System.out.println("Parse and generate CSV in " + (System.currentTimeMillis() - time) + "ms for " + resolve);
+        System.out.println("Parse and generate CSV in " + (System.currentTimeMillis() - time) + "ms for " + directory);
     }
 
 	private void parse(InputStream fin) throws Exception {
@@ -180,12 +150,13 @@ public final class NvdCveParser {
 		}
 	}
     
-    public List<String> getSql() {
+    public List<String> getSql() throws Exception {
     	List<String> list = new ArrayList<>();
     	
     	list.add(vulnerabilityWriter.getSql());
     	list.add(cweEntryWriter.getSql());
     	list.add(referenceWriter.getSql());
+    	
     	list.addAll(softwareWriter.getVulnerableSoftwareSql());
 
     	list.add(softwareWriter.getCpeEntrySql());

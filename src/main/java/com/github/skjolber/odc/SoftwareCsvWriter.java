@@ -1,14 +1,11 @@
-package test;
+package com.github.skjolber.odc;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 import org.apache.commons.io.IOUtils;
@@ -31,9 +28,9 @@ import us.springett.parsers.cpe.CpeParser;
 import us.springett.parsers.cpe.exceptions.CpeParsingException;
 import us.springett.parsers.cpe.exceptions.CpeValidationException;
 
-public class SoftwareWriter {
+public class SoftwareCsvWriter {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(SoftwareWriter.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(SoftwareCsvWriter.class);
 
 	private CSVWriter cpeEntryWriter;
 	private Path cpeEntryPath;
@@ -53,7 +50,7 @@ public class SoftwareWriter {
     
     private CpeCache cpes;
     
-	public SoftwareWriter(Path directory, Settings settings, CpeCache cpes) {
+	public SoftwareCsvWriter(Path directory, Settings settings, CpeCache cpes) {
 		this.directory = directory;
 		this.cpes = cpes;
 		
@@ -122,21 +119,14 @@ public class SoftwareWriter {
 		}
 	}
 
-	public List<String> getVulnerableSoftwareSql()  {
+	public List<String> getVulnerableSoftwareSql() throws IOException  {
 		List<String> sqls = new ArrayList<>();
-		System.out.println("Return " + softwareCount + " for " + directory + " software");
-		try {
-			String template = IOUtils.toString(getClass().getResourceAsStream("/sql/software.sql"), StandardCharsets.UTF_8);
-			
-			for(int i = 0; i < softwareCount; i++) {
-				String fileName = String.format(softwareTemplate, i);
-				Path path = directory.resolve(fileName);
-				String sql = String.format(template, path.toAbsolutePath().toString());
-				
-				sqls.add(sql);
-			}
-		} catch (IOException e) {
-			throw new RuntimeException(e);
+		String template = IOUtils.toString(getClass().getResourceAsStream("/sql/software.sql"), StandardCharsets.UTF_8);
+		for(int i = 0; i < softwareCount; i++) {
+			String fileName = String.format(softwareTemplate, i);
+			Path path = directory.resolve(fileName);
+			String sql = String.format(template, path.toAbsolutePath().toString());
+			sqls.add(sql);
 		}
 		return sqls;
 	}
