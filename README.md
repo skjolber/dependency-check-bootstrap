@@ -50,3 +50,6 @@ mvn clean package && java -jar target/h2-bootstrap-0.0.1-SNAPSHOT-jar-with-depen
 ## JDBC insert with improved multi-threading approach
 Was unable to improve much on this by using more connections / multi-threading. 
 CPU use seems to not exceed about 150% very often.
+
+## JDBC insert with custom java bean datasource
+Inefficient due to layers of wrapping.
