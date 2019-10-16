@@ -8,11 +8,12 @@ public class Runner {
 		
 		for(int i = 0; i < 1; i++) {
 			System.out.println("***************************************************************************************************************************************************************************************************************************************");
-			File file = new File("/tmp/testdb");
+			File file = new File("/tmp/testdb.trace.db");
+			file.delete();
+			file = new File("/tmp/testdb.mv.db");
 			file.delete();
 			
-			CsvDatabaseGenerator transformer = new CsvDatabaseGenerator();
-			
+			CsvDatabaseGenerator transformer = new CsvDatabaseGenerator(false);
 			transformer.process();
 		}
 	}
