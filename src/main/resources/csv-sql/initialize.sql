@@ -37,4 +37,4 @@ CREATE INDEX idxCpeEntry ON cpeEntry(part, vendor, product, version, update_vers
 CREATE TABLE properties (id varchar(50) PRIMARY KEY, value varchar(500));
 INSERT INTO properties(id, value) VALUES ('version', '4.1');
 
-
+CREATE ALIAS BINARY_REFERENCE FOR "com.github.skjolber.odc.ReferenceSimpleRowSource.forPath";

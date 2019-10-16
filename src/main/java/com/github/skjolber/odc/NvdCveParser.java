@@ -60,10 +60,10 @@ public final class NvdCveParser {
     
     private final VulnerabilityCsvWriter vulnerabilityWriter;
     private final CweEntryWriter cweEntryWriter;
-    private final ReferenceCsvWriter referenceWriter;
     private final SoftwareCsvWriter softwareWriter;
 
     private Path directory;
+	private BinaryReferenceWriter binaryReferenceWriter;
     
 
     public NvdCveParser(Path directory, IdSpace idSpace, Settings settings, CpeCache cpes) throws IOException {
@@ -73,7 +73,7 @@ public final class NvdCveParser {
         this.vulnerabilityWriter = new VulnerabilityCsvWriter(directory, idSpace.next());
 		
         this.cweEntryWriter = new CweEntryWriter(directory);
-        this.referenceWriter = new ReferenceCsvWriter(directory);
+        this.binaryReferenceWriter = new BinaryReferenceWriter(directory);
         this.softwareWriter = new SoftwareCsvWriter(directory, settings, cpes);
     }
 
@@ -122,7 +122,7 @@ public final class NvdCveParser {
 		    
 		    vulnerabilityWriter.open();
 			cweEntryWriter.open();
-			referenceWriter.open();
+			binaryReferenceWriter.open();
 			softwareWriter.open();
 			
 		    while (reader.hasNext()) {
@@ -137,7 +137,7 @@ public final class NvdCveParser {
 		        	
 		        	cweEntryWriter.write(vulnerabilityId, cve);
 		        	
-		        	String ecoSystem = referenceWriter.write(vulnerabilityId, cve, description);
+		        	String ecoSystem = binaryReferenceWriter.write(vulnerabilityId, cve, description);
 		        	
 		        	softwareWriter.write(vulnerabilityId, cve, ecoSystem);
 		        }
@@ -145,7 +145,7 @@ public final class NvdCveParser {
 		    
 		    vulnerabilityWriter.close();
 		    cweEntryWriter.close();
-		    referenceWriter.close();
+		    binaryReferenceWriter.close();
 		    softwareWriter.close();
 		}
 	}
@@ -155,7 +155,9 @@ public final class NvdCveParser {
     	
     	list.add(vulnerabilityWriter.getSql());
     	list.add(cweEntryWriter.getSql());
-    	list.add(referenceWriter.getSql());
+    	
+    	list.add(binaryReferenceWriter.getSql());
+    	//list.add(referenceWriter.getSql());
     	
     	list.addAll(softwareWriter.getVulnerableSoftwareSql());
 

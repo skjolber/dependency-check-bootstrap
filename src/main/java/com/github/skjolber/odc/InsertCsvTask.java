@@ -22,6 +22,9 @@ public class InsertCsvTask implements Runnable {
         		statement.execute(sql);
         	}
         } catch (SQLException e) {
+        	e.printStackTrace();
+        	
+        	
         	throw new RuntimeException(e);
 		}
 	}

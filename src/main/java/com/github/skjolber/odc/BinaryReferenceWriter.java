@@ -2,6 +2,7 @@ package com.github.skjolber.odc;
 
 
 
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -20,21 +21,20 @@ import org.owasp.dependencycheck.analyzer.RubyGemspecAnalyzer;
 import org.owasp.dependencycheck.data.nvd.json.DefCveItem;
 import org.owasp.dependencycheck.data.nvd.json.Reference;
 
-import com.opencsv.CSVWriter;
+public class BinaryReferenceWriter {
 
-public class ReferenceCsvWriter {
-
-	private CSVWriter writer;
+	private DataOutputStream dout;
 	private Path path;
+	private BinaryReference reference = new BinaryReference();
 	
-	public ReferenceCsvWriter(Path directory) {
-		path = directory.resolve("owasp.reference.csv");
+	public BinaryReferenceWriter(Path directory) throws IOException {
+		path = directory.resolve("owasp.reference.bin");
 	}	
 
-    public String write(int vulnerabilityId, DefCveItem cve, String description) {
+    public String write(int vulnerabilityId, DefCveItem cve, String description) throws IOException {
         String ecosystem = determineBaseEcosystem(description);
-        String[] row = new String[4];
-        row[0] = Integer.toString(vulnerabilityId);
+        
+        reference.setCveId(vulnerabilityId);
         
         for (Reference r : cve.getCve().getReferences().getReferenceData()) {
             if (ecosystem == null) {
@@ -54,26 +54,25 @@ public class ReferenceCsvWriter {
                     ecosystem = NodeAuditAnalyzer.DEPENDENCY_ECOSYSTEM;
                 }
             }
+
+            reference.setCveId(vulnerabilityId);
+
+            reference.setName(r.getName());
+            reference.setUrl(r.getUrl());
+            reference.setSource(r.getRefsource());
             
-            row[1] = r.getName();
-            row[2] = r.getUrl();
-            row[3] = r.getRefsource();
-            
-            writer.writeNext(row);
+            reference.write(dout);
         }
         return ecosystem;
     }
     
 
 	public void open() throws IOException {
-		writer = new CSVWriter(Files.newBufferedWriter(path, StandardCharsets.UTF_8));
-		writer.writeNext(new String[]{"cveid", "name", "url", "source"});
+		dout = new DataOutputStream(Files.newOutputStream(path));
 	}
 	
 	public void close() throws IOException {
-		if(writer != null) {
-			writer.close(); 
-		}
+		dout.close();
 	}
 
 	public String getSql()  {
