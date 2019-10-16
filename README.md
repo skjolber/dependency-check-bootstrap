@@ -17,7 +17,7 @@ On a 4+4 core laptop with a fiber connection.
 
 Includes download, but not latest updates nor database maintenance.
 
-## JDBC approach (original)
+## JDBC insert approach (original)
 Runs in approximately 128 seconds:
 
 ```
@@ -30,7 +30,7 @@ Got 103270 rows for cweEntry
 
 Modified `NvdCveUpdaterIT` and uncomment `if (runLast != null)` and `cveDb.cleanupDatabase();` in `NvdCveUpdater`.
 
-## CSV approach
+## JDBC CSV insert approach
 Runs in approximately 52 seconds:
 
 ```
@@ -47,6 +47,6 @@ Run it using the command
 mvn clean package && java -jar target/h2-bootstrap-0.0.1-SNAPSHOT-jar-with-dependencies.jar
 ```
 
-## JDBC with improved multi-threading approach
+## JDBC insert with improved multi-threading approach
 Was unable to improve much on this by using more connections / multi-threading. 
 CPU use seems to not exceed about 150% very often.
