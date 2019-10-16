@@ -41,7 +41,11 @@ public class CsvDatabaseGenerator implements UncaughtExceptionHandler {
 	private ThreadPoolExecutor processExecutor;
 	private ThreadPoolExecutor downloadExecutor;
 	
-	public CsvDatabaseGenerator() throws Exception {
+	private boolean remote = true;
+	
+	public CsvDatabaseGenerator(boolean remote) throws Exception {
+		this.remote = remote;
+		
 		settings.setString(Settings.KEYS.DB_CONNECTION_STRING, "jdbc:h2:file:/tmp/testdb;AUTOCOMMIT=ON;LOG=0;CACHE_SIZE=65536;");
 		settings.setString(Settings.KEYS.H2_DATA_DIRECTORY, "/tmp/testdb");
 		this.connectionFactory = new ConnectionFactory();
@@ -65,7 +69,7 @@ public class CsvDatabaseGenerator implements UncaughtExceptionHandler {
 		
 		Path destination = Paths.get("/tmp");
 		
-		List<URL> urls = getUrls();
+		List<URL> urls = remote ? getUrls() : getResources();
 		
 		IdSpace idSpace = new IdSpace(1, Integer.MAX_VALUE / 2, urls.size());
 
@@ -140,25 +144,38 @@ public class CsvDatabaseGenerator implements UncaughtExceptionHandler {
 		}
 		return urls;
 	}
+	private List<URL> getResources() throws IOException {
+		return getFiles(Paths.get("src", "main", "resources", "gz"));
+	}
 
-	private List<Path> getFiles(Stream<Path> walk) {
-		List<Path> result = walk.filter(f -> f.toString().endsWith(".gz")).collect(Collectors.toList());
-		
-		Collections.sort(result, new Comparator<Path>() {
-
-			@Override
-			public int compare(Path a, Path b) {
-				FileChannel aFileChannel;
-				try {
-					aFileChannel = FileChannel.open(a);
-					FileChannel bFileChannel = FileChannel.open(b);
-					return -Long.compare(aFileChannel.size(), bFileChannel.size());
-				} catch(IOException e) {
-					throw new RuntimeException();
+	private List<URL> getFiles(Path path) throws IOException {
+		try (Stream<Path> walk = Files.walk(path)) {
+			
+			List<Path> result = walk.filter(f -> f.toString().endsWith(".gz")).collect(Collectors.toList());
+			
+			Collections.sort(result, new Comparator<Path>() {
+	
+				@Override
+				public int compare(Path a, Path b) {
+					FileChannel aFileChannel;
+					try {
+						aFileChannel = FileChannel.open(a);
+						FileChannel bFileChannel = FileChannel.open(b);
+						return -Long.compare(aFileChannel.size(), bFileChannel.size());
+					} catch(IOException e) {
+						throw new RuntimeException();
+					}
 				}
-			}
-		});
-		return result;
+			});
+			
+			return result.stream().map(e -> {
+				try {
+					return e.toUri().toURL();
+				} catch (MalformedURLException e1) {
+					throw new RuntimeException(e1);
+				}
+			}) .collect(Collectors.toList());
+		}
 	}
 	
     private void createTables(Connection conn) throws Exception {

@@ -13,8 +13,7 @@ public class Runner {
 			file = new File("/tmp/testdb.mv.db");
 			file.delete();
 			
-			CsvDatabaseGenerator transformer = new CsvDatabaseGenerator();
-			
+			CsvDatabaseGenerator transformer = new CsvDatabaseGenerator(false);
 			transformer.process();
 		}
 	}
