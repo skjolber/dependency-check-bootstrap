@@ -41,12 +41,16 @@ public class CsvDatabaseGenerator implements UncaughtExceptionHandler {
 	private ThreadPoolExecutor processExecutor;
 	private ThreadPoolExecutor downloadExecutor;
 	
-	private boolean remote = true;
+	private boolean remote;
+	private boolean multiThreaded;
+	private boolean noop;
 	
-	public CsvDatabaseGenerator(boolean remote) throws Exception {
+	public CsvDatabaseGenerator(boolean remote, boolean multiThreaded, boolean noop) throws Exception {
 		this.remote = remote;
+		this.multiThreaded = multiThreaded;
+		this.noop = noop;
 		
-		settings.setString(Settings.KEYS.DB_CONNECTION_STRING, "jdbc:h2:file:/tmp/testdb;AUTOCOMMIT=ON;LOG=0;CACHE_SIZE=65536;");
+		settings.setString(Settings.KEYS.DB_CONNECTION_STRING, "jdbc:h2:file:/tmp/testdb;AUTOCOMMIT=ON;LOG=0;CACHE_SIZE=65536;UNDO_LOG=0;LOCK_MODE=0");
 		settings.setString(Settings.KEYS.H2_DATA_DIRECTORY, "/tmp/testdb");
 		this.connectionFactory = new ConnectionFactory();
 		
@@ -54,8 +58,8 @@ public class CsvDatabaseGenerator implements UncaughtExceptionHandler {
 			createTables(connection);
 		}
 		
-		this.downloadThreads = Math.min(4, Runtime.getRuntime().availableProcessors());
-		this.processThreads = Runtime.getRuntime().availableProcessors();
+		this.downloadThreads = multiThreaded ? Math.min(4, Runtime.getRuntime().availableProcessors()) : 1;
+		this.processThreads = multiThreaded ? Runtime.getRuntime().availableProcessors() : 1;
 		
 		this.processExecutor = (ThreadPoolExecutor) Executors.newFixedThreadPool(processThreads);
 		this.processExecutor.setThreadFactory(new UncaughtExceptionHandlerThreadFactory(processExecutor.getThreadFactory(), this));
@@ -87,7 +91,7 @@ public class CsvDatabaseGenerator implements UncaughtExceptionHandler {
 					Files.createDirectory(d);
 				}
 
-				GenerateCsvTask task = new GenerateCsvTask(url, d, idSpace, settings, connectionFactory, processExecutor, cpeCache);
+				GenerateCsvTask task = new GenerateCsvTask(url, d, idSpace, settings, connectionFactory, processExecutor, cpeCache, noop);
 				if(i < processWhileDownloading) {
 					System.out.println("Process while downloading " + url);
 					processExecutor.submit(task);
@@ -111,25 +115,27 @@ public class CsvDatabaseGenerator implements UncaughtExceptionHandler {
         processExecutor.shutdown();
         downloadExecutor.shutdown();
 
-        postProcessTables();
-
-        // database cleanup has zero effect, here
-        
-        // list results
-        String[] tables = new String[] {"software", "cpeEntry", "reference", "vulnerability", "properties", "cweEntry"};
-        
-        try (Connection conn = connectionFactory.getConnection()) {
-        	try (Statement statement = conn.createStatement()) {
-        		for(String table : tables) {
-	        		ResultSet executeQuery = statement.executeQuery("SELECT COUNT(*) AS rows FROM " + table);
-	        		executeQuery.next();
-	        		int int1 = executeQuery.getInt("rows");
-	        		System.out.println("Got " + int1 + " rows for " + table);
-        		}
-    		}
-        } catch (SQLException e) {
-        	throw new RuntimeException(e);
-		}        
+        if(!noop) {
+	        postProcessTables();
+	
+	        // database cleanup has zero effect, here
+	        
+	        // list results
+	        String[] tables = new String[] {"software", "cpeEntry", "reference", "vulnerability", "properties", "cweEntry"};
+	        
+	        try (Connection conn = connectionFactory.getConnection()) {
+	        	try (Statement statement = conn.createStatement()) {
+	        		for(String table : tables) {
+		        		ResultSet executeQuery = statement.executeQuery("SELECT COUNT(*) AS rows FROM " + table);
+		        		executeQuery.next();
+		        		int int1 = executeQuery.getInt("rows");
+		        		System.out.println("Got " + int1 + " rows for " + table);
+	        		}
+	    		}
+	        } catch (SQLException e) {
+	        	throw new RuntimeException(e);
+			}
+        }
         
         if(uncaughtException != null) {
         	throw new RuntimeException("Underlying thread pool threw exception");

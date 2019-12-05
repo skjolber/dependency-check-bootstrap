@@ -21,23 +21,39 @@ import org.owasp.dependencycheck.data.nvd.json.DefCveItem;
 import org.owasp.dependencycheck.data.nvd.json.Reference;
 
 import com.opencsv.CSVWriter;
+import com.opencsv.ICSVWriter;
 
-public class ReferenceCsvWriter {
+public class ReferenceCsvWriter extends AbstractWriter {
 
-	private CSVWriter writer;
+	private ICSVWriter writer;
 	private Path path;
 	
-	public ReferenceCsvWriter(Path directory) {
+	public ReferenceCsvWriter(Path directory, boolean noop) {
+		super(noop);
+		
 		path = directory.resolve("owasp.reference.csv");
 	}	
 
     public String write(int vulnerabilityId, DefCveItem cve, String description) {
-        String ecosystem = determineBaseEcosystem(description);
+        String ecosystem = determineEcoSystem(cve, description);
+        
         String[] row = new String[4];
         row[0] = Integer.toString(vulnerabilityId);
         
         for (Reference r : cve.getCve().getReferences().getReferenceData()) {
-            if (ecosystem == null) {
+            row[1] = r.getName();
+            row[2] = r.getUrl();
+            row[3] = r.getRefsource();
+            
+            writer.writeNext(row);
+        }
+        return ecosystem;
+    }
+
+	private String determineEcoSystem(DefCveItem cve, String description) {
+		String ecosystem = determineBaseEcosystem(description);
+        if (ecosystem == null) {
+            for (Reference r : cve.getCve().getReferences().getReferenceData()) {
                 if (r.getUrl().contains("elixir-security-advisories")) {
                     ecosystem = "elixir";
                 } else if (r.getUrl().contains("ruby-lang.org")) {
@@ -54,19 +70,13 @@ public class ReferenceCsvWriter {
                     ecosystem = NodeAuditAnalyzer.DEPENDENCY_ECOSYSTEM;
                 }
             }
-            
-            row[1] = r.getName();
-            row[2] = r.getUrl();
-            row[3] = r.getRefsource();
-            
-            writer.writeNext(row);
         }
-        return ecosystem;
-    }
+		return ecosystem;
+	}
     
 
 	public void open() throws IOException {
-		writer = new CSVWriter(Files.newBufferedWriter(path, StandardCharsets.UTF_8));
+		writer = createWriter(path);
 		writer.writeNext(new String[]{"cveid", "name", "url", "source"});
 	}
 	

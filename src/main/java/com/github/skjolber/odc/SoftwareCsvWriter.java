@@ -22,20 +22,21 @@ import org.slf4j.LoggerFactory;
 
 import com.github.skjolber.odc.ext.VulnerableSoftwareBuilder;
 import com.opencsv.CSVWriter;
+import com.opencsv.ICSVWriter;
 
 import us.springett.parsers.cpe.Cpe;
 import us.springett.parsers.cpe.CpeParser;
 import us.springett.parsers.cpe.exceptions.CpeParsingException;
 import us.springett.parsers.cpe.exceptions.CpeValidationException;
 
-public class SoftwareCsvWriter {
+public class SoftwareCsvWriter extends AbstractWriter {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SoftwareCsvWriter.class);
 
-	private CSVWriter cpeEntryWriter;
+	private ICSVWriter cpeEntryWriter;
 	private Path cpeEntryPath;
 
-	private CSVWriter softwareWriter;
+	private ICSVWriter softwareWriter;
 	
 	private String cpeStartsWithFilter;
 	
@@ -50,7 +51,9 @@ public class SoftwareCsvWriter {
     
     private CpeCache cpes;
     
-	public SoftwareCsvWriter(Path directory, Settings settings, CpeCache cpes) {
+	public SoftwareCsvWriter(Path directory, Settings settings, CpeCache cpes, boolean noop) {
+		super(noop);
+		
 		this.directory = directory;
 		this.cpes = cpes;
 		
@@ -87,7 +90,7 @@ public class SoftwareCsvWriter {
             softwareRows++;
             if( (softwareRows % softwareLimit) == 0) {
             	softwareWriter.close(); 
-        		softwareWriter = new CSVWriter(Files.newBufferedWriter(nextSoftwareFileName(), StandardCharsets.UTF_8));
+        		softwareWriter = createWriter(nextSoftwareFileName());
         		softwareWriter.writeNext(new String[]{"cveid", "cpeEntryId", "versionEndExcluding", "versionEndIncluding", "versionStartExcluding", "versionStartIncluding", "vulnerable"});
             }
         }
@@ -95,10 +98,10 @@ public class SoftwareCsvWriter {
     }
 
 	public void open() throws IOException {
-		cpeEntryWriter = new CSVWriter(Files.newBufferedWriter(cpeEntryPath, StandardCharsets.UTF_8));
+		cpeEntryWriter = createWriter(cpeEntryPath);
 		cpeEntryWriter.writeNext(new String[]{"id", "part", "vendor", "product", "version", "update_version", "edition", "lang", "sw_edition", "target_sw", "target_hw", "other", "ecosystem"});
 		
-		softwareWriter = new CSVWriter(Files.newBufferedWriter(nextSoftwareFileName(), StandardCharsets.UTF_8));
+		softwareWriter = createWriter(nextSoftwareFileName());
 		softwareWriter.writeNext(new String[]{"cveid", "cpeEntryId", "versionEndExcluding", "versionEndIncluding", "versionStartExcluding", "versionStartIncluding", "vulnerable"});
 	}
 	
@@ -183,7 +186,7 @@ public class SoftwareCsvWriter {
      * @param targetSw the target software
      * @return the ecosystem if one is identified
      */
-    private String determineEcosystem(String baseEcosystem, String vendor, String product, String targetSw) {
+    private static String determineEcosystem(String baseEcosystem, String vendor, String product, String targetSw) {
         if ("ibm".equals(vendor) && "java".equals(product)) {
             return "c/c++";
         }
@@ -257,7 +260,7 @@ public class SoftwareCsvWriter {
     	return id;
     }
 
-	private String getKey(VulnerableSoftware parsedCpe) {
+	private static String getKey(VulnerableSoftware parsedCpe) {
 		StringBuilder builder = new StringBuilder();
 
     	builder.append(parsedCpe.getPart().getAbbreviation());

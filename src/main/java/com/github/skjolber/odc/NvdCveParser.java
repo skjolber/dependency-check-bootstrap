@@ -64,17 +64,16 @@ public final class NvdCveParser {
     private final SoftwareCsvWriter softwareWriter;
 
     private Path directory;
-    
 
-    public NvdCveParser(Path directory, IdSpace idSpace, Settings settings, CpeCache cpes) throws IOException {
+    public NvdCveParser(Path directory, IdSpace idSpace, Settings settings, CpeCache cpes, boolean noop) throws IOException {
     	this.directory = directory;
         this.cpeStartsWithFilter = settings.getString(Settings.KEYS.CVE_CPE_STARTS_WITH_FILTER, "cpe:2.3:a:");
         
-        this.vulnerabilityWriter = new VulnerabilityCsvWriter(directory, idSpace.next());
+        this.vulnerabilityWriter = new VulnerabilityCsvWriter(directory, idSpace.next(), noop);
 		
-        this.cweEntryWriter = new CweEntryWriter(directory);
-        this.referenceWriter = new ReferenceCsvWriter(directory);
-        this.softwareWriter = new SoftwareCsvWriter(directory, settings, cpes);
+        this.cweEntryWriter = new CweEntryWriter(directory, noop);
+        this.referenceWriter = new ReferenceCsvWriter(directory, noop);
+        this.softwareWriter = new SoftwareCsvWriter(directory, settings, cpes, noop);
     }
 
     /**

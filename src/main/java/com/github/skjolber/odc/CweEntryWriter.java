@@ -13,13 +13,15 @@ import org.owasp.dependencycheck.data.nvd.json.LangString;
 import org.owasp.dependencycheck.data.nvd.json.ProblemtypeDatum;
 
 import com.opencsv.CSVWriter;
+import com.opencsv.ICSVWriter;
 
-public class CweEntryWriter {
+public class CweEntryWriter extends AbstractWriter {
 
-	private CSVWriter writer;
+	private ICSVWriter writer;
 	private Path path;
 	
-	public CweEntryWriter(Path directory) {
+	public CweEntryWriter(Path directory, boolean noop) {
+		super(noop);
 		path = directory.resolve("owasp.cweEntry.csv");
 	}	
 
@@ -37,7 +39,7 @@ public class CweEntryWriter {
     }
 
 	public void open() throws IOException {
-		writer = new CSVWriter(Files.newBufferedWriter(path, StandardCharsets.UTF_8));
+		writer = createWriter(path);
 		writer.writeNext(new String[]{"cveid", "cwe"});
 	}
 	
